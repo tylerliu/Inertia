@@ -84,6 +84,10 @@ void decode(uint32_t *pc)  {
             par1 = -1;
             cons[0] = fetch(pc);
             break;
+        case 3:
+            par1 = -4 -((instr >> 20) & 3);
+            break;
+            
     }
     
     switch ((instr >> 24) & 3) {//par2
@@ -97,6 +101,10 @@ void decode(uint32_t *pc)  {
             par2 = -2;
             cons[1] = fetch(pc);
             break;
+        case 3:
+            par2 = -4 - ((instr >> 18) & 3);
+            break;
+            
     }
     
     switch ((instr >> 22) & 3) {//par3
@@ -110,6 +118,9 @@ void decode(uint32_t *pc)  {
             par3 = -3;
             cons[2] = fetch(pc);
             break;
+        case 3:
+            par3 = -4 - ((instr >> 16) & 3);
+            break;
     }
     
 }
@@ -118,6 +129,9 @@ void decode(uint32_t *pc)  {
 uint32_t* get_add(int i ){
     int32_t par = i == 1 ? par1 : ( i == 2 ? par2 : par3 );
     switch(par){
+        case -7 ... -4:
+            return &memory[regs[-4 - par]];
+            break;
         case -1:
             return &cons[0];
             break;
