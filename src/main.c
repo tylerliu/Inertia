@@ -260,6 +260,7 @@ void run(uint32_t pc)
     }
 }
 
+/*
 static inline uint32_t fgetu(){
     uint32_t a = (fgetc(f) << 24) +(fgetc(f) << 16) + (fgetc(f) << 8);
     int b = fgetc(f);
@@ -269,6 +270,7 @@ static inline uint32_t fgetu(){
     }
     return a + (uint32_t) b;
 }
+ */
 
 int main( int argc, const char * argv[] )
 {
@@ -281,7 +283,15 @@ int main( int argc, const char * argv[] )
     //read in file
     
     f = fopen(argv[1], "rb");
-    len_program = fgetu();
+    //len_program = fgetu();
+    len_program = (fgetc(f) << 24) +(fgetc(f) << 16) + (fgetc(f) << 8);
+    int b = fgetc(f);
+    if (b == EOF){
+        printf("Failed to read file\n");
+        exit(3);
+    }
+    len_program += (uint32_t)b;
+    
     program = (I_instr_t *)malloc(len_program * sizeof(I_instr_t));
     if(!program){
         printf("Failed to allocate instruction array\n");
@@ -289,7 +299,15 @@ int main( int argc, const char * argv[] )
     }
     
     for (int i = 0; i < len_program; i ++){
-        program[i].instr = fgetu();
+        
+        //program[i].instr = fgetu();
+        program[i].instr = (fgetc(f) << 24) +(fgetc(f) << 16) + (fgetc(f) << 8);
+        int b = fgetc(f);
+        if (b == EOF){
+            printf("Failed to read file\n");
+            exit(3);
+        }
+        program[i].instr += (uint32_t)b;
     }
     
     fclose(f);
