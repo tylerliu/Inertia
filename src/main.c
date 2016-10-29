@@ -273,7 +273,10 @@ static inline uint32_t fgetu(){
 int main( int argc, const char * argv[] )
 {
     
-    if (argc == 1) printf("Please enter file name");
+    if (argc == 1) {
+        printf("Please enter file name\n");
+        exit(1);
+    }
     
     //read in file
     
