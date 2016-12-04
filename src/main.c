@@ -5,6 +5,7 @@
 //  Created by Tyler Liu on 2016/10/09.
 //  Copyright © 2016 Tyler Liu. All rights reserved.
 //
+// Byte code written in Little Endian.
 
 #include <stdio.h>
 #include <string.h>
@@ -12,8 +13,9 @@
 #include <stdlib.h>
 #include <time.h>
 
-#define NUM_REGS 4
+#define NUM_REGS 32
 
+//TODO Dynamic Memory Allocation
 #define NUM_MEMS 65536
 
 #define INERTIA_ADD 0x0 // Addition
@@ -36,43 +38,37 @@
 #define INERTIA_CALL 0xF // call function
 
 //Error type
-#define IOExecption 0
-#define AllocationExecption 1
+#define IOException 0
+#define AllocationException 1
 #define ArrayOutOfBoundException 2
 
-typedef struct I_instr_t {
-    uint32_t instr;
-} I_instr_t;
+uint32_t instr;
 
 void on_error(int type) {
     switch (type) {
-        case IOExecption:
+        case IOException:
             printf("Failed to read file\n");
-            exit(3);
             break;
-        case AllocationExecption:
+        case AllocationException:
             printf("Failed to allocate memory space\n");
-            exit(1);
             break;
         case ArrayOutOfBoundException:
             printf("Instruction array out of bound\n");
-            exit(2);
             break;
         default:
             printf("Error Occured\n");
-            exit(1);
             break;
     }
-    exit(130);
+    exit(1);
 }
 
-uint32_t regs[NUM_REGS];
-uint32_t memory[NUM_MEMS];
+int32_t regs[NUM_REGS];
+int32_t memory[NUM_MEMS];
 
 FILE *f;
 uint32_t len_program;
-I_instr_t *program;
-uint32_t cons[3];
+uint32_t *program;
+int32_t cons[3];
 
 uint32_t fetch(uint32_t *pc) {
     if (*pc >= len_program) {
@@ -80,7 +76,7 @@ uint32_t fetch(uint32_t *pc) {
     }
     (*pc)++;
     //printf("fetch %d\n", *pc - 1);
-    return program[*pc - 1].instr;
+    return program[*pc - 1];
 }
 
 /* instruction fields */
@@ -312,34 +308,27 @@ int main( int argc, const char * argv[] )
     
     if (argc == 1) {
         printf("Please enter file name\n");
-        on_error(IOExecption);
+        on_error(IOException);
     }
     
     //read in file
 
     f = fopen(argv[1], "rb");
     //len_program = fgetu();
-    len_program = (fgetc(f) << 24) +(fgetc(f) << 16) + (fgetc(f) << 8);
+    len_program = (uint32_t) ((fgetc(f) << 24) + (fgetc(f) << 16) + (fgetc(f) << 8));
     int b = fgetc(f);
     if (b == EOF){
-        on_error(IOExecption);
+        on_error(IOException);
     }
     len_program += (uint32_t)b;
     
-    program = (I_instr_t *)malloc(len_program * sizeof(I_instr_t));
+    program = (uint32_t *)malloc(len_program * sizeof(uint32_t));
     if(!program){
-        on_error(AllocationExecption);
+        on_error(AllocationException);
     }
-    
-    for (int i = 0; i < len_program; i ++){
-        
-        //program[i].instr = fgetu();
-        program[i].instr = (fgetc(f) << 24) +(fgetc(f) << 16) + (fgetc(f) << 8);
-        int b = fgetc(f);
-        if (b == EOF){
-            on_error(IOExecption);
-        }
-        program[i].instr += (uint32_t)b;
+
+    if (fread(program, 4, len_program, f) != len_program) {
+        on_error(IOException);
     }
 
     fclose(f);
