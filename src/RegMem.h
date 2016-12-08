@@ -24,7 +24,7 @@
 int32_t int_regs[NUM_INT_REGS];//[0] is always 0
 double fpt_regs[NUM_DOUBLE_REGS];
 int32_t int_memory[NUM_INT_MEMS];
-double fpt_memory[NUM_DOUBLE_REGS];
+double fpt_memory[NUM_DOUBLE_MEMS];
 
 //fcsr not defined
 //pc defined in main program.
