@@ -64,6 +64,8 @@ void func(Instr_format_U *instr, uint32_t *pc, int *running){
     if ((instr->imm12_31) == 1){//return
         (*running) = 0;
     }
+    //TODO REALLOC()
+
 }
 
 /* evaluate the last decoded instruction */
@@ -150,15 +152,20 @@ int main( int argc, const char * argv[] )
 
     f = fopen(argv[1], "rb");
     //len_program = fgetu();
-    len_program = (uint32_t) ((fgetc(f) << 24) + (fgetc(f) << 16) + (fgetc(f) << 8));
-    int b = fgetc(f);
-    if (b == EOF){
+
+    if (fread(&len_program, 4, 1, f) != 1){
         on_error(IOException);
     }
-    len_program += (uint32_t)b;
-    
     program = (uint32_t *)malloc(len_program * sizeof(uint32_t));
     if(!program){
+        on_error(AllocationException);
+    }
+
+    if (fread(&len_mem, 4, 1, f) != 1){
+        on_error(IOException);
+    }
+    memory = malloc(len_mem);
+    if(!memory){
         on_error(AllocationException);
     }
 

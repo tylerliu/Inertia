@@ -171,6 +171,7 @@ void branch(Instr_format_SB *instr, uint32_t *pc){
             val = ((uint32_t)instr->rs1) > ((uint32_t)instr->rs2);
             break;
         default:
+            val = 0;
             break;
     }
     if (!val) *pc = *pc + (get_imm_SB(instr) >> 2);
@@ -181,21 +182,21 @@ void load(Instr_format_I *instr){
     //if (instr->rd == 0) return;
     switch (instr->funct3){
         case LW:
-            int_regs[instr->rd] = int_memory[int_regs[instr->rs1] + get_imm_I(instr)];
+            int_regs[instr->rd] = *(int32_t *)(memory+(int_regs[instr->rs1] + get_imm_I(instr)));
             break;
         case LH:
-            if ((int_memory[int_regs[instr->rs1] + get_imm_I(instr)] >> 15) & 1) int_regs[instr->rd] = -1;
-            int_regs[instr->rd] = (int_regs[instr->rd] << 16) + (int_memory[int_regs[instr->rs1] + get_imm_I(instr)] & 0xFFFF);
+            if (((*(int32_t *)(memory+(int_regs[instr->rs1] + get_imm_I(instr)))) >> 15) & 1) int_regs[instr->rd] = -1;
+            int_regs[instr->rd] = (int_regs[instr->rd] << 16) + ((*(int32_t *)(memory+(int_regs[instr->rs1] + get_imm_I(instr)))) & 0xFFFF);
             break;
         case LHU:
-            int_regs[instr->rd] = int_memory[int_regs[instr->rs1] + get_imm_I(instr)] & 0xFFFF;
+            int_regs[instr->rd] = (*(int32_t *)(memory+(int_regs[instr->rs1] + get_imm_I(instr)))) & 0xFFFF;
             break;
         case LB:
-            if ((int_memory[int_regs[instr->rs1] + get_imm_I(instr)] >> 7) & 1) int_regs[instr->rd] = -1;
-            int_regs[instr->rd] = (int_regs[instr->rd] << 8) + (int_memory[int_regs[instr->rs1] + get_imm_I(instr)] & 0xFF);
+            if (((*(int32_t *)(memory+(int_regs[instr->rs1] + get_imm_I(instr)))) >> 7) & 1) int_regs[instr->rd] = -1;
+            int_regs[instr->rd] = (int_regs[instr->rd] << 8) + ((*(int32_t *)(memory+(int_regs[instr->rs1] + get_imm_I(instr)))) & 0xFF);
             break;
         case LBU:
-            int_regs[instr->rd] = int_memory[int_regs[instr->rs1] + get_imm_I(instr)] & 0xFF;
+            int_regs[instr->rd] = (*(int32_t *)(memory+(int_regs[instr->rs1] + get_imm_I(instr)))) & 0xFF;
             break;
         default:
             break;
@@ -206,13 +207,13 @@ void load(Instr_format_I *instr){
 void store(Instr_format_S *instr){
     switch (instr->funct3){
         case SW:
-            int_memory[int_regs[instr->rs1] + get_imm_I(instr)] = int_regs[instr->rs2];
+            *(int32_t *)(memory+(int_regs[instr->rs1] + get_imm_S(instr))) = int_regs[instr->rs2];
             break;
         case SH:
-            int_memory[int_regs[instr->rs1] + get_imm_I(instr)] = int_regs[instr->rs2] & 0xFFFF;
+            *(int16_t *)(memory+(int_regs[instr->rs1] + get_imm_S(instr))) = (int16_t) (int_regs[instr->rs2] & 0xFFFF);
             break;
         case SB:
-            int_memory[int_regs[instr->rs1] + get_imm_I(instr)] = int_regs[instr->rs2] & 0xFF;
+            *(int8_t *)(memory+(int_regs[instr->rs1] + get_imm_S(instr))) = (int8_t) (int_regs[instr->rs2] & 0xFF);
             break;
         default:
             break;
@@ -224,16 +225,30 @@ void store(Instr_format_S *instr){
 
 //load from int_memory, type I, The effective byte = s1 + IMM.
 void load_fp(Instr_format_I *instr){
-    //case DLE:
-    //case FLT:
-    fpt_regs[instr->rd] = fpt_memory[int_regs[instr->rs1] + get_imm_I(instr)];
+    switch(instr->funct3) {
+        case DLE:
+            fpt_regs[instr->rd] = *(double *)(memory+(int_regs[instr->rs1] + get_imm_I(instr)));
+            break;
+        case FLT:
+            fpt_regs[instr->rd] = *(float *)(memory+(int_regs[instr->rs1] + get_imm_I(instr)));
+            break;
+        default:
+            break;
+    }
 }
 
 //store to int_memory, type S, The effective byte = s1 + IMM.
 void store_fp(Instr_format_S *instr){
-    //case DLE:
-    //case FLT:
-    fpt_memory[int_regs[instr->rs1] + get_imm_I(instr)] = fpt_regs[instr->rs2];
+    switch(instr->funct3) {
+        case DLE:
+            *(double *)(memory+(int_regs[instr->rs1] + get_imm_S(instr))) = fpt_regs[instr->rs2];
+            break;
+        case FLT:
+            *(float *)(memory+(int_regs[instr->rs1] + get_imm_S(instr))) = (float)fpt_regs[instr->rs2];
+            break;
+        default:
+            break;
+    }
 }
 
 void op_fp(Instr_format_R4 *instr){

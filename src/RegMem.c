@@ -1,5 +1,5 @@
 //
-//  RegMem.h
+//  RegMem.c
 //  Inertia
 //
 //  Created by Tyler Liu on 2016/12/03.
