@@ -2,3 +2,6 @@
 *.hide
 *.bin
 md/*
+*.gnf
+*.out
+
