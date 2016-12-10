@@ -39,7 +39,7 @@ void on_error(int type) {
             printf("Instruction array out of bound\n");
             break;
         default:
-            printf("Error Occured\n");
+            printf("Error Occurred\n");
             break;
     }
     exit(1);

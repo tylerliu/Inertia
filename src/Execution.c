@@ -8,7 +8,6 @@
 //  execution function
 
 #include "Execution.h"
-#include "Instr_set.h"
 #include <stdio.h>
 #include <string.h>
 
@@ -127,13 +126,13 @@ void op(Instr_format_R *instr) {
 //load upper immediate, type U, load imm to dest.
 void lui(Instr_format_U *instr){
     //if (instr->rd == 0) return;
-    int_regs[instr->rd] = instr->imm12_31;
+    int_regs[instr->rd] = get_imm_U(instr);
 }
 
 //add upper immediate to pc, type U, add imm to pc, store in dest.
 void auipc(Instr_format_U *instr, uint32_t *pc){
     //if (instr->rd == 0) return;
-    int_regs[instr->rd] = (instr->imm12_31 >> 2) + *pc;
+    int_regs[instr->rd] = (get_imm_U(instr) >> 2) + *pc;
 }
 
 //Unconditional jumps, type UJ, add immediate to pc.if dest = 0, plain jump. store pc+4 to dest after jump.
@@ -185,18 +184,16 @@ void load(Instr_format_I *instr){
             int_regs[instr->rd] = *(int32_t *)(memory+(int_regs[instr->rs1] + get_imm_I(instr)));
             break;
         case LH:
-            if (((*(int32_t *)(memory+(int_regs[instr->rs1] + get_imm_I(instr)))) >> 15) & 1) int_regs[instr->rd] = -1;
-            int_regs[instr->rd] = (int_regs[instr->rd] << 16) + ((*(int32_t *)(memory+(int_regs[instr->rs1] + get_imm_I(instr)))) & 0xFFFF);
+            int_regs[instr->rd] = *(int16_t *)(memory+(int_regs[instr->rs1] + get_imm_I(instr)));
             break;
         case LHU:
-            int_regs[instr->rd] = (*(int32_t *)(memory+(int_regs[instr->rs1] + get_imm_I(instr)))) & 0xFFFF;
+            int_regs[instr->rd] = *(uint16_t *)(memory+(int_regs[instr->rs1] + get_imm_I(instr)));
             break;
         case LB:
-            if (((*(int32_t *)(memory+(int_regs[instr->rs1] + get_imm_I(instr)))) >> 7) & 1) int_regs[instr->rd] = -1;
-            int_regs[instr->rd] = (int_regs[instr->rd] << 8) + ((*(int32_t *)(memory+(int_regs[instr->rs1] + get_imm_I(instr)))) & 0xFF);
+            int_regs[instr->rd] = *(int8_t *)(memory+(int_regs[instr->rs1] + get_imm_I(instr)));
             break;
         case LBU:
-            int_regs[instr->rd] = (*(int32_t *)(memory+(int_regs[instr->rs1] + get_imm_I(instr)))) & 0xFF;
+            int_regs[instr->rd] = *(uint8_t *)(memory+(int_regs[instr->rs1] + get_imm_I(instr)));
             break;
         default:
             break;
