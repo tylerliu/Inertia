@@ -326,10 +326,12 @@ void io(Instr_format_U *instr){
     char fm[11] = "%";
     char mk[4] = "";
 
-    if((in >> 19) & 1)strcat(fm, "\n");//preceding new line
-    if((in >> 18) & 1)strcat(fm, " ");//preceding space
+    if ((in >> 1) & 1) {//print literals
+        printf("%c%c", (in >> 2)&0xFF), (in >> 10) & 0xFF);
+        return;
+    }
 
-    switch ((in >> 13) & 7){//flag
+    switch ((in >> 17) & 7){//flag
         case 0://no flag
             break;
         case 1://-
@@ -351,80 +353,97 @@ void io(Instr_format_U *instr){
             break;
     }
 
-    //length, not doing if equal to 0
-    uint32_t i = (in >> 9) & 15;
+    //field width, not doing if equal to 0
+    uint32_t i = (in >> 13) & 15;
     if (i > 0){
         sprintf(mk, "%u", i);
         strcat(fm, mk);
     }
 
     //precision, not doing if equal to 0
-    i = (in >> 5) & 15;
+    i = (in >> 9) & 15;
     if (i > 0){
         sprintf(mk, ".%u", i);
         strcat(fm, mk);
     }
 
+    //length
+    switch ((in >> 6) & 7){
+        case 0:
+            break;
+        case 1:
+            strcat(fm, "hh");
+            break;
+        case 2:
+            strcat(fm, "h");
+            break;
+        case 3:
+            strcat(fm, "l");
+            break;
+        case 4:
+            strcat(fm, "ll");
+            break;
+        case 5:
+            strcat(fm, "L");
+            break;
+        default:
+            break;
+    }
+
     //type
-    switch ((in >> 1) & 15){
+    switch ((in >> 2) & 15){
         case 0://"d"
             strcat(fm, "d");
             break;
-        case 1://"hd"
-            strcat(fm, "hd");
-            break;
-        case 2://"u"
+        case 1://"u"
             strcat(fm, "u");
             break;
-        case 3://"lf"
-            strcat(fm, "lf");
+        case 2://"f"
+            strcat(fm, "f");
             break;
-        case 4://"Lf", not defined
-            strcat(fm, "Lf");
+        case 3://"F"
+            strcat(fm, "F");
             break;
-        case 5://"le"
-            strcat(fm, "le");
+        case 4://"e"
+            strcat(fm, "e");
             break;
-        case 6://"Le", not defined
-            strcat(fm, "Le");
+        case 5://"E"
+            strcat(fm, "E");
             break;
-        case 7://"lg"
-            strcat(fm, "lg");
+        case 6://"g"
+            strcat(fm, "g");
             break;
-        case 8://"Lg", not defined
-            strcat(fm, "Lg");
+        case 7://"G"
+            strcat(fm, "G");
             break;
-        case 9://"x"
+        case 8://"x"
             strcat(fm, "x");
             break;
-        case 10://"X"
+        case 9://"X"
             strcat(fm, "X");
             break;
-        case 11://"o"
+        case 10://"o"
             strcat(fm, "o");
             break;
-        case 12://"c"
+        case 11://"c"
             strcat(fm, "c");
             break;
-        case 13://"a"
+        case 12://"a"
             strcat(fm, "a");
             break;
-        case 14://"A"
+        case 13://"A"
             strcat(fm, "A");
             break;
-        case 15://"i"
+        case 14://"i"
             strcat(fm, "i");
             break;
         default:
             break;
     }
 
-    if((in >> 17) & 1)strcat(fm, " ");//succeeding space
-    if((in >> 16) & 1)strcat(fm, "\n");//succeeding new line
-
     //printf("%s", fm);
     if (in & 1){//output
-        if (((in >> 1) & 15) >= 3 && ((in >> 1) & 15) <= 8){//fpt
+        if (((in >> 2) & 15) >= 2 && ((in >> 2) & 15) <= 7){//fpt
             printf(fm, fpt_regs[instr->rd]);
         }
         else{//int
@@ -432,7 +451,7 @@ void io(Instr_format_U *instr){
         }
     }
     else{//input
-        if (((in >> 1) & 15) >= 3 && ((in >> 1) & 15) <= 8){//fpt
+        if (((in >> 2) & 15) >= 2 && ((in >> 2) & 15) <= 7){//fpt
             scanf(fm, &fpt_regs[instr->rd]);
         }
         else{//int
