@@ -64,8 +64,9 @@ void func(Instr_format_U *instr, uint32_t *pc, int *running){
     if ((instr->imm12_31) == 1){//return
         (*running) = 0;
     }
-    //TODO REALLOC()
-
+    if ((instr->imm12_31) == 1){//realloc();
+        memory = realloc(memory, (uint32_t)int_regs[instr->rd]);
+    }
 }
 
 /* evaluate the last decoded instruction */
