@@ -10,6 +10,8 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <errno.h>
+#include <string.h>
 
 #include "Instr_set.h"
 #include "RegMem.h"
@@ -29,12 +31,6 @@ uint32_t *program;
 
 void on_error(int type) {
     switch (type) {
-        case IOException:
-            printf("Failed to read file\n");
-            break;
-        case AllocationException:
-            printf("Failed to allocate memory space\n");
-            break;
         case ArrayOutOfBoundException:
             printf("Instruction array out of bound\n");
             break;
@@ -42,6 +38,8 @@ void on_error(int type) {
             printf("Error Occurred\n");
             break;
     }
+    fclose(f);
+    free(program);
     exit(1);
 }
 
@@ -71,7 +69,9 @@ void func(Instr_format_U *instr, uint32_t *pc, int *running){
 
 /* evaluate the last decoded instruction */
 void eval(int *running, uint32_t *pc) {
-    *instr = fetch(pc);
+    uint32_t temp;
+    temp = fetch(pc);
+    instr = &temp;
     //printf("NUM: %d\n", *instr);
     switch ((*instr) & 127) {
         case OP_IMM:
@@ -155,6 +155,7 @@ int main( int argc, const char * argv[] )
     //len_program = fgetu();
 
     if (fread(&len_program, 4, 1, f) != 1){
+        printf("Error: %s\n", strerror(errno));
         on_error(IOException);
     }
     program = (uint32_t *)malloc(len_program * sizeof(uint32_t));
@@ -163,14 +164,17 @@ int main( int argc, const char * argv[] )
     }
 
     if (fread(&len_mem, 4, 1, f) != 1){
+        printf("Error: %s\n", strerror(errno));
         on_error(IOException);
     }
     memory = malloc(len_mem);
     if(!memory){
+        printf("Error: %s\n", strerror(errno));
         on_error(AllocationException);
     }
 
     if (fread(program, 4, len_program, f) != len_program) {
+        printf("Error: %s\n", strerror(errno));
         on_error(IOException);
     }
 

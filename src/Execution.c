@@ -327,7 +327,7 @@ void io(Instr_format_U *instr){
     char mk[4] = "";
 
     if ((in >> 1) & 1) {//print literals
-        printf("%c%c", (in >> 2)&0xFF), (in >> 10) & 0xFF);
+        printf("%c%c", (in >> 2) & 0xFF, (in >> 10) & 0xFF);
         return;
     }
 
@@ -452,10 +452,10 @@ void io(Instr_format_U *instr){
     }
     else{//input
         if (((in >> 2) & 15) >= 2 && ((in >> 2) & 15) <= 7){//fpt
-            scanf(fm, &fpt_regs[instr->rd]);
+            scanf(fm, &(fpt_regs[instr->rd]));
         }
         else{//int
-            scanf(fm, &int_regs[instr->rd]);
+            scanf(fm, &(int_regs[instr->rd]));
         }
     }
 }
