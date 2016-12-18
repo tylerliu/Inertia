@@ -152,22 +152,22 @@ void branch(Instr_format_SB *instr, uint32_t *pc){
     int val;
     switch (instr->funct3){
         case BEQ:
-            val = instr->rs1 == instr->rs2;
+            val = int_regs[instr->rs1] == int_regs[instr->rs2];
             break;
         case BNE:
-            val = instr->rs1 != instr->rs2;
+            val = int_regs[instr->rs1] != int_regs[instr->rs2];
             break;
         case BLT:
-            val = instr->rs1 < instr->rs2;
+            val = int_regs[instr->rs1] < int_regs[instr->rs2];
             break;
         case BLTU:
-            val = ((uint32_t)instr->rs1) < ((uint32_t)instr->rs2);
+            val = ((uint32_t)int_regs[instr->rs1]) < ((uint32_t)int_regs[instr->rs2]);
             break;
         case BGE:
-            val = instr->rs1 > instr->rs2;
+            val = int_regs[instr->rs1] > int_regs[instr->rs2];
             break;
         case BGEU:
-            val = ((uint32_t)instr->rs1) > ((uint32_t)instr->rs2);
+            val = ((uint32_t)int_regs[instr->rs1]) > ((uint32_t)int_regs[instr->rs2]);
             break;
         default:
             val = 0;
@@ -327,7 +327,8 @@ void io(Instr_format_U *instr){
     char mk[4] = "";
 
     if ((in >> 1) & 1) {//print literals
-        printf("%c%c", (in >> 2) & 0xFF, (in >> 10) & 0xFF);
+        if ((in >> 2) & 0xFF) printf("%c", (in >> 2) & 0xFF);
+        if ((in >> 10) & 0xFF) printf("%c", (in >> 10) & 0xFF);
         return;
     }
 
