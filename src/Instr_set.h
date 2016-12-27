@@ -10,110 +10,131 @@
 
 #include <stdint.h>
 
-//pc is RISC-V definition divided by 4
-
-//RV32I/RV32M
-
 //opcodes
-#define OP_IMM 0b0010011//Integer Register-Immediate Instructions, type I
-#define OP     0b0110011//Integer Register-Register Operations, type R
-#define LUI    0b0110111//load upper immediate, type U, load imm to dest.
-#define AUIPC  0b0010111//add upper immediate to pc, type U, add imm to pc, store in dest.
+
+//imm ops
+#define ADDI      0X00
+#define SLTI      0X01
+#define SLTUI     0X02
+#define ANDI      0X03
+#define ORI       0X04
+#define XORI      0X05
+#define SLLI      0X06
+#define SRLI      0X07
+#define SRAI      0X08
+#define MULI      0X09
+#define DIVI      0X0A
+#define DIVUI     0X0B
+#define REMI      0X0C
+#define REMUI     0X0D
+#define ADD       0X0E
+#define SUB       0X0F
+#define SLT       0X10
+#define SLTU      0X11
+#define AND       0X12
+#define OR        0X13
+#define XOR       0X14
+#define SLL       0X15
+#define SRL       0X16
+#define SRA       0X17
+#define MUL       0X18
+#define DIV       0X19
+#define DIVU      0X1A
+#define REM       0X1B
+#define REMU      0X1C
+#define LUI       0X1D
+#define JAL       0X1E
+#define JALR      0X1F
+#define BEQ       0X20
+#define BNE       0X21
+#define BLT       0X22
+#define BLTU      0X23
+#define BGE       0X24
+#define BGEU      0X25
+#define LW        0X26
+#define LH        0X27
+#define LHU       0X28
+#define LB        0X29
+#define LBU       0X2A
+#define SW        0X2B
+#define SH        0X2C
+#define SB        0X2D
+#define FLW       0X2E
+#define FLD       0X2F
+#define FSW       0X30
+#define FSD       0X31
+#define FADD      0X32
+#define FSUB      0X33
+#define FMUL      0X34
+#define FDIV      0X35
+#define FSQRT     0X36
+#define FCVT_D_W  0X37
+#define FCVT_D_WU 0X38
+#define FCVT_W_D  0X39
+#define FCVT_WU_D 0X3A
+#define F_EQ      0X3B
+#define F_LT      0X3C
+#define F_LE      0X3D
+#define SCAN      0X3E
+#define PRINT     0X3F
+#define CALL      0X40
+#define CALLR     0X41
+#define RET       0X42
+#define REALLOC   0X43
+#define EXIT      0X44
+
+
 //MV = ADDI r1 rs 0
 //NOP = ADDI x0, x0, 0
-#define JAL    0b1101111//Unconditional jumps, type UJ, add immediate to pc.if dest = 0, plain jump. store pc+4 to dest after jump.
-#define JALR   0b1100111//jump and link register, type I, store pc+4 to dest after jump.
-#define BRANCH 0b1100011//branch statements, type SB, shift of offest.
-#define LOAD   0b0000011//load from memory, type I, The effective byte = s1 + IMM.
-#define STORE  0b0100011//store to memory, type S, The effective byte = s1 + IMM.
-//FENCE not defined as single thread application
-//SYSTEM not defined yet.
-#define IO     0b0001011//custom 0, Input/Output, type I
-#define FUNC   0b0101011//custom 1, function control
 
 //func3
-#define ADD  0b000 //addition
-#define SLT  0b010 //signed compare
-#define SLTU 0b011 //unsigned compare
-#define AND  0b111 //bitwise and
-#define OR   0b110 //bitwise or
-#define XOR  0b100 //bitwise xor
-#define SLL  0b001 //logical left shifts
-#define SRL  0b101 //logical right shifts
-#define SUB  0b000 //funct7 = 0b0100000, subtraction
-#define SRA  0b101 //funct7 = 0b0100000, arithmetic right shifts
+// ADD   //addition
+// SLT   //signed compare
+// SLTU  //unsigned compare
+// AND   //bitwise and
+// OR    //bitwise or
+// XOR   //bitwise xor
+// SLL   //logical left shifts
+// SRL   //logical right shifts
+// SUB   //subtraction
+// SRA   //arithmetic right shifts
 
 //branches
-#define BEQ  0b000 //branch equal
-#define BNE  0b001 //branch not equal
-#define BLT  0b100 //branch less than
-#define BLTU 0b101 //branch less than unsigned
-#define BGE  0b110 //branch greater than
-#define BGEU 0b111 //branch greater than unsigned
+// BEQ   //branch equal
+// BNE   //branch not equal
+// BLT   //branch less than
+// BLTU  //branch less than unsigned
+// BGE   //branch greater than
+// BGEU  //branch greater than unsigned
 
 //LOAD/STORE
-#define LW   0b010 //load 32 bit value from memory
-#define LH   0b001 //load 16 bit value signed
-#define LHU  0b101 //load 16 bit value unsigned
-#define LB   0b000 //load 8 bit value signed
-#define LBU  0b100 //load 8 bit value unsigned
-#define SW   0b010 //store 32 bit value
-#define SH   0b001 //store 16 bit value
-#define SB   0b000 //store 8 bit value
+// LW    //load 32 bit value from memory
+// LH    //load 16 bit value signed
+// LHU   //load 16 bit value unsigned
+// LB    //load 8 bit value signed
+// LBU   //load 8 bit value unsigned
+// SW    //store 32 bit value
+// SH    //store 16 bit value
+// SB    //store 8 bit value
 
-//RV32M, func7 = 0b0000001
-#define MUL  0b000 //return low 32 bit of product
-#define MULH 0b001
-#define MULHSU 0b010
-#define MULHU 0b011
-#define DIV  0b100
-#define DIVU 0b101
-#define REM 0b110
-#define REMU 0b111
-
-
-
-//RV32F/RV32D
-
-//opcodes
-#define LOAD_FP   0b0000111//load from memory, type I, The effective byte = s1 + IMM. floating point
-#define STORE_FP  0b0100111//store to memory, type S, The effective byte = s1 + IMM. floating point
-#define OP_FP     0b1010011//floating point Operations, type R4
-#define FMADD     0b1000011//rs1 * rs2 + rs3, type R4
-#define FMSUB     0b1000111//rs1 * rs2 - rs3, type R4
-#define FNMADD    0b1001111//-(rs1 * rs2 + rs3), type R4
-#define FNMSUB    0b1001011//-(rs1 * rs2 - rs3), type R4
-
-//width, store in func3
-#define FLT 0b010 //width of floating point
-#define DLE 0b011 //width of double
-//#define QFL 0b111 //width of long double
-
-//fmt
-#define FMT_S 0b00 //width of floating point
-#define FMT_D 0b01 //width of double precision floating point
-#define FMT_Q 0b11 //width of quad precision floating point
+// LOAD_FP   //load from memory, type I, The effective byte = s1 + IMM. floating point
+// STORE_FP  //store to memory, type S, The effective byte = s1 + IMM. floating point
+// OP_FP     //floating point Operations, type R4
 
 //OP_FP, FMAX/FMIN not supported, 64 bit int not supported, code in rs3
 //rounding mode not supported, using nearest
 //all treated as double in operation
-#define FADD 0b00000  //floating point addiction
-#define FSUB 0b00001  //floating point subtraction
-#define FMUL 0b00010  //floating point multiplication
-#define FDIV 0b00011  //floating point division
-#define FSQRT 0b01011 //floating point equare root
-#define FCVT_fmt_int 0b11010 //int32_t to floating point
-#define FCVT_int_fmt 0b11000 //floating point to int32_t
-//rs2 = 00001 if W as unsigned,
-#define FCMP      0b10100 //floating point comparing.
+// FADD   //floating point addiction
+// FSUB   //floating point subtraction
+// FMUL   //floating point multiplication
+// FDIV   //floating point division
+// FSQRT  //floating point equare root
+// FCVT_fmt_int  //int32_t to floating point
+// FCVT_int_fmt  //floating point to int32_t
 
-//FCMP func3
-#define F_EQ 0b010 //floating point equal
-#define F_LT 0b001 //floating point less than
-#define F_LE 0b000 //floating point less than or equal
-
-//FSGNJ, FMV not defined
-//FCLASS not defined
+// F_EQ  //floating point equal
+// F_LT  //floating point less than
+// F_LE  //floating point less than or equal
 
 //IO
 //see decode function
@@ -121,7 +142,6 @@
 //FUNC
 //call
 
-//call: need to be follow by JAL/JALR to move to function
 //call with reg
 //return
 //exit()
@@ -132,72 +152,37 @@
 
 //Structures
 typedef struct{
-    unsigned int opcode:7;
+    unsigned int opcode:8;
     unsigned int rd:5;
-    unsigned int funct3:3;
     unsigned int rs1:5;
     unsigned int rs2:5;
-    unsigned int funct7:7;
+    unsigned int funct:9;
 }Instr_format_R;
 
 typedef struct{
-    unsigned int opcode:7;
+    unsigned int opcode:8;
     unsigned int rd:5;
-    unsigned int funct3:3;
     unsigned int rs1:5;
-    unsigned int rs2:5;
-    unsigned int funct2:2;
-    unsigned int rs3:5;
-}Instr_format_R4;
-
-typedef struct{
-    unsigned int opcode:7;
-    unsigned int rd:5;
-    unsigned int funct3:3;
-    unsigned int rs1:5;
-    unsigned int imm0_11:12;
+    unsigned int imm:14;
 }Instr_format_I;
 
 typedef struct{
-    unsigned int opcode:7;
-    unsigned int imm0_4:5;
-    unsigned int funct3:3;
+    unsigned int opcode:8;
     unsigned int rs1:5;
     unsigned int rs2:5;
-    unsigned int imm5_11:7;
+    unsigned int imm:14;
 }Instr_format_S;
 
 typedef struct{
-    unsigned int opcode:7;
-    unsigned int imm11:1;
-    unsigned int imm1_4:4;
-    unsigned int funct3:3;
-    unsigned int rs1:5;
-    unsigned int rs2:5;
-    unsigned int imm5_10:6;
-    unsigned int imm12:1;
-}Instr_format_SB;
-
-typedef struct{
-    unsigned int opcode:7;
+    unsigned int opcode:8;
     unsigned int rd:5;
-    unsigned int imm12_31:20;
+    unsigned int imm:19;
 }Instr_format_U;
-
-typedef struct{
-    unsigned int opcode:7;
-    unsigned int rd:5;
-    unsigned int imm12_19:8;
-    unsigned int imm11:1;
-    unsigned int imm1_10:10;
-    unsigned int imm20:1;
-}Instr_format_UJ;
 
 //functions
 int32_t get_imm_I(Instr_format_I *);
 int32_t get_imm_S(Instr_format_S *);
-int32_t get_imm_SB(Instr_format_SB *);
 int32_t get_imm_U(Instr_format_U *);
-int32_t get_imm_UJ(Instr_format_UJ *);
+int32_t get_imm_UJ(Instr_format_U *);
 
 #endif /* Instr_set.h */

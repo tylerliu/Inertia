@@ -10,329 +10,234 @@
 #include "Execution.h"
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 
 // Integer Register-Immediate Instructions, type I
-void op_imm(Instr_format_I * instr){
-    //if (instr->rd == 0) return;
-    switch(instr->funct3){
-        case ADD:
-            int_regs[instr->rd] = int_regs[instr->rs1] + get_imm_I(instr);
-            break;
-        case SLT:
-            int_regs[instr->rd] = int_regs[instr->rs1] < get_imm_I(instr);
-            break;
-        case SLTU:
-            int_regs[instr->rd] = (uint32_t)int_regs[instr->rs1] < get_imm_I(instr);
-            break;
-        case AND:
-            int_regs[instr->rd] = int_regs[instr->rs1] & get_imm_I(instr);
-            break;
-        case OR:
-            int_regs[instr->rd] = int_regs[instr->rs1] | get_imm_I(instr);
-            break;
-        case XOR:
-            int_regs[instr->rd] = int_regs[instr->rs1] ^ get_imm_I(instr);
-            break;
-        case SLL:
-            int_regs[instr->rd] = (int_regs[instr->rs1] << (instr->imm0_11 & 31));
-            break;
-        case SRL:
-            if (((instr->imm0_11)>> 10) == 0b01) {//SRA?
-                int_regs[instr->rd] = (int_regs[instr->rs1] >> (instr->imm0_11 & 31));//signed
-            }
-            else {
-                int_regs[instr->rd] = (int32_t)((uint32_t)int_regs[instr->rs1] >> (instr->imm0_11 & 31));//unsigned
-            }
-            break;
-        default:
-            break;
+void addi(uint32_t *instr, uint32_t *pc, int *running){
+    int_regs[(((Instr_format_I *)instr))->rd] = int_regs[((Instr_format_I *)instr)->rs1] + get_imm_I(((Instr_format_I *)instr));
     }
+void slti(uint32_t *instr, uint32_t *pc, int *running){
+    int_regs[((Instr_format_I *)instr)->rd] = int_regs[((Instr_format_I *)instr)->rs1] < get_imm_I(((Instr_format_I *)instr));
+    }
+void sltui(uint32_t *instr, uint32_t *pc, int *running){
+    int_regs[((Instr_format_I *)instr)->rd] = (uint32_t)int_regs[((Instr_format_I *)instr)->rs1] < get_imm_I(((Instr_format_I *)instr));
+    }
+void andi(uint32_t *instr, uint32_t *pc, int *running){
+    int_regs[((Instr_format_I *)instr)->rd] = int_regs[((Instr_format_I *)instr)->rs1] & get_imm_I(((Instr_format_I *)instr));
+    }
+void ori(uint32_t *instr, uint32_t *pc, int *running){
+    int_regs[((Instr_format_I *)instr)->rd] = int_regs[((Instr_format_I *)instr)->rs1] | get_imm_I(((Instr_format_I *)instr));
+    }
+void xori(uint32_t *instr, uint32_t *pc, int *running){
+    int_regs[((Instr_format_I *)instr)->rd] = int_regs[((Instr_format_I *)instr)->rs1] ^ get_imm_I(((Instr_format_I *)instr));
+    }
+void slli(uint32_t *instr, uint32_t *pc, int *running){
+    int_regs[((Instr_format_I *)instr)->rd] = (int_regs[((Instr_format_I *)instr)->rs1] << (((Instr_format_I *)instr)->imm & 31));
+    }
+void srai(uint32_t *instr, uint32_t *pc, int *running){
+    int_regs[((Instr_format_I *)instr)->rd] = (int_regs[((Instr_format_I *)instr)->rs1] >> (((Instr_format_I *)instr)->imm & 31));//signed
+}
+void srli(uint32_t *instr, uint32_t *pc, int *running){
+    int_regs[((Instr_format_I *)instr)->rd] = (int32_t)((uint32_t)int_regs[((Instr_format_I *)instr)->rs1] >> (((Instr_format_I *)instr)->imm & 31));//unsigned
+}
+void muli(uint32_t *instr, uint32_t *pc, int *running){
+    int_regs[((Instr_format_I *)instr)->rd] = int_regs[((Instr_format_I *)instr)->rs1] * get_imm_I(((Instr_format_I *)instr));
+}
+void divi(uint32_t *instr, uint32_t *pc, int *running){
+    int_regs[((Instr_format_I *)instr)->rd] = int_regs[((Instr_format_I *)instr)->rs1] / get_imm_I(((Instr_format_I *)instr));
+}
+void divui(uint32_t *instr, uint32_t *pc, int *running){
+    int_regs[((Instr_format_I *)instr)->rd] = (int32_t)((uint32_t)int_regs[((Instr_format_I *)instr)->rs1] / ((Instr_format_I *)instr)->imm);
+}
+void remi(uint32_t *instr, uint32_t *pc, int *running){
+    int_regs[((Instr_format_I *)instr)->rd] = int_regs[((Instr_format_I *)instr)->rs1] % get_imm_I(((Instr_format_I *)instr));
+}
+void remui(uint32_t *instr, uint32_t *pc, int *running){
+    int_regs[((Instr_format_I *)instr)->rd] = (int32_t)((uint32_t)int_regs[((Instr_format_I *)instr)->rs1] % ((Instr_format_I *)instr)->imm);
 }
 
 //Integer Register-Register Operations, type R
-void op(Instr_format_R *instr) {
-    //if (instr->rd == 0) return;
-    if ((instr->funct7) != 0b0000001) {
-        switch (instr->funct3) {
-            case ADD://add/sub
-                if (((instr->funct7) >> 5) == 0b01) {//sub
-                    int_regs[instr->rd] = int_regs[instr->rs1] - int_regs[instr->rs2];
-                } else {
-                    int_regs[instr->rd] = int_regs[instr->rs1] + int_regs[instr->rs2];
-                }
-                break;
-            case SLT:
-                int_regs[instr->rd] = int_regs[instr->rs1] < int_regs[instr->rs2];
-                break;
-            case SLTU:
-                int_regs[instr->rd] = (uint32_t) int_regs[instr->rs1] < int_regs[instr->rs2];
-                break;
-            case AND:
-                int_regs[instr->rd] = int_regs[instr->rs1] & int_regs[instr->rs2];
-                break;
-            case OR:
-                int_regs[instr->rd] = int_regs[instr->rs1] | int_regs[instr->rs2];
-                break;
-            case XOR:
-                int_regs[instr->rd] = int_regs[instr->rs1] ^ int_regs[instr->rs2];
-                break;
-            case SLL:
-                int_regs[instr->rd] = (int_regs[instr->rs1] << (int_regs[instr->rs2] & 31));
-                break;
-            case SRL:
-                if (((instr->funct7) >> 5) == 0b01) {//SRA?
-                    int_regs[instr->rd] = (int_regs[instr->rs1] >> (int_regs[instr->rs2] & 31));//signed
-                } else {
-                    int_regs[instr->rd] = (int32_t) ((uint32_t) int_regs[instr->rs1]
-                            >> (int_regs[instr->rs2] & 31));//unsigned
-                }
-                break;
-            default:
-                break;
-        }
+void add(uint32_t *instr, uint32_t *pc, int *running){
+    int_regs[((Instr_format_R *)instr)->rd] = int_regs[((Instr_format_R *)instr)->rs1] + int_regs[((Instr_format_R *)instr)->rs2];
     }
-    else{
-        switch (instr->funct3){
-            case MUL:
-                int_regs[instr->rd] = int_regs[instr->rs1] * int_regs[instr->rs2];
-                break;
-            case MULH:
-                int_regs[instr->rd] = (int32_t)(((int64_t)int_regs[instr->rs1] * (int64_t)int_regs[instr->rs2]) >> 32);
-                break;
-            case MULHSU:
-                int_regs[instr->rd] = (int32_t)(((int64_t)int_regs[instr->rs1] * (uint64_t)int_regs[instr->rs2]) >> 32);
-                break;
-            case MULHU:
-                int_regs[instr->rd] = (int32_t)(((uint64_t)int_regs[instr->rs1] * (uint64_t)int_regs[instr->rs2]) >> 32);
-                break;
-            case DIV:
-                int_regs[instr->rd] = int_regs[instr->rs1] / int_regs[instr->rs2];
-                break;
-            case DIVU:
-                int_regs[instr->rd] = (int32_t)((uint32_t)int_regs[instr->rs1] / (uint32_t)int_regs[instr->rs2]);
-                break;
-            case REM:
-                int_regs[instr->rd] = int_regs[instr->rs1] % int_regs[instr->rs2];
-                break;
-            case REMU:
-                int_regs[instr->rd] = (int32_t)((uint32_t)int_regs[instr->rs1] % (uint32_t)int_regs[instr->rs2]);
-                break;
-            default:
-                break;
-        }
+void sub(uint32_t *instr, uint32_t *pc, int *running){
+    int_regs[((Instr_format_R *)instr)->rd] = int_regs[((Instr_format_R *)instr)->rs1] - int_regs[((Instr_format_R *)instr)->rs2];
     }
-}
+void slt(uint32_t *instr, uint32_t *pc, int *running){
+    int_regs[((Instr_format_R *)instr)->rd] = int_regs[((Instr_format_R *)instr)->rs1] < int_regs[((Instr_format_R *)instr)->rs2];
+    }
+void sltu(uint32_t *instr, uint32_t *pc, int *running){
+    int_regs[((Instr_format_R *)instr)->rd] = (uint32_t) int_regs[((Instr_format_R *)instr)->rs1] < int_regs[((Instr_format_R *)instr)->rs2];
+    }
+void and(uint32_t *instr, uint32_t *pc, int *running){
+    int_regs[((Instr_format_R *)instr)->rd] = int_regs[((Instr_format_R *)instr)->rs1] & int_regs[((Instr_format_R *)instr)->rs2];
+    }
+void or(uint32_t *instr, uint32_t *pc, int *running){
+    int_regs[((Instr_format_R *)instr)->rd] = int_regs[((Instr_format_R *)instr)->rs1] | int_regs[((Instr_format_R *)instr)->rs2];
+    }
+void xor(uint32_t *instr, uint32_t *pc, int *running){
+    int_regs[((Instr_format_R *)instr)->rd] = int_regs[((Instr_format_R *)instr)->rs1] ^ int_regs[((Instr_format_R *)instr)->rs2];
+    }
+void sll(uint32_t *instr, uint32_t *pc, int *running){
+    int_regs[((Instr_format_R *)instr)->rd] = (int_regs[((Instr_format_R *)instr)->rs1] << (int_regs[((Instr_format_R *)instr)->rs2] & 31));
+    }
+void sra(uint32_t *instr, uint32_t *pc, int *running){
+        int_regs[((Instr_format_R *)instr)->rd] = (int_regs[((Instr_format_R *)instr)->rs1] >> (int_regs[((Instr_format_R *)instr)->rs2] & 31));
+    }
+void srl(uint32_t *instr, uint32_t *pc, int *running){
+        int_regs[((Instr_format_R *)instr)->rd] = (int32_t) ((uint32_t) int_regs[((Instr_format_R *)instr)->rs1]
+                >> (int_regs[((Instr_format_R *)instr)->rs2] & 31));
+    }
+void mul(uint32_t *instr, uint32_t *pc, int *running){
+    int_regs[((Instr_format_R *)instr)->rd] = int_regs[((Instr_format_R *)instr)->rs1] * int_regs[((Instr_format_R *)instr)->rs2];
+    }
+void division(uint32_t *instr, uint32_t *pc, int *running){
+    int_regs[((Instr_format_R *)instr)->rd] = int_regs[((Instr_format_R *)instr)->rs1] / int_regs[((Instr_format_R *)instr)->rs2];
+    }
+void divu(uint32_t *instr, uint32_t *pc, int *running){
+    int_regs[((Instr_format_R *)instr)->rd] = (int32_t)((uint32_t)int_regs[((Instr_format_R *)instr)->rs1] / (uint32_t)int_regs[((Instr_format_R *)instr)->rs2]);
+    }
+void rem(uint32_t *instr, uint32_t *pc, int *running){
+    int_regs[((Instr_format_R *)instr)->rd] = int_regs[((Instr_format_R *)instr)->rs1] % int_regs[((Instr_format_R *)instr)->rs2];
+    }
+void remu(uint32_t *instr, uint32_t *pc, int *running){
+    int_regs[((Instr_format_R *)instr)->rd] = (int32_t)((uint32_t)int_regs[((Instr_format_R *)instr)->rs1] % (uint32_t)int_regs[((Instr_format_R *)instr)->rs2]);
+    }
 
 //load upper immediate, type U, load imm to dest.
-void lui(Instr_format_U *instr){
+void lui(uint32_t *instr, uint32_t *pc, int *running){
     //if (instr->rd == 0) return;
-    int_regs[instr->rd] = get_imm_U(instr);
-}
-
-//add upper immediate to pc, type U, add imm to pc, store in dest.
-void auipc(Instr_format_U *instr, uint32_t *pc){
-    //if (instr->rd == 0) return;
-    int_regs[instr->rd] = (get_imm_U(instr) >> 2) + *pc;
+    int_regs[((Instr_format_U *)instr)->rd] = get_imm_U(((Instr_format_U *)instr));
 }
 
 //Unconditional jumps, type UJ, add immediate to pc.if dest = 0, plain jump. store pc+4 to dest after jump.
-void jal(Instr_format_UJ *instr, uint32_t *pc){
-    *pc = *pc + (get_imm_UJ(instr) >> 2);
-    if (instr->rd != 0) int_regs[instr->rd] = *pc + 1;
+void jal(uint32_t *instr, uint32_t *pc, int *running){
+    *pc = *pc + get_imm_UJ(((Instr_format_U *)instr));
+    if (((Instr_format_U *)instr)->rd != 0) int_regs[((Instr_format_U *)instr)->rd] = *pc + 1;
 }
 
 //jump and link register, type I, store pc+4 to dest after jump.
-void jalr(Instr_format_I *instr, uint32_t *pc){
-    *pc = *pc + ((instr->rs1 + get_imm_I(instr)) >> 2);
-    if (instr->rd != 0) int_regs[instr->rd] = *pc + 1;
+void jalr(uint32_t *instr, uint32_t *pc, int *running){
+    *pc = *pc + (int_regs[((Instr_format_I *)instr)->rs1] + get_imm_I(((Instr_format_I *)instr)));
+    if (((Instr_format_I *)instr)->rd != 0) int_regs[((Instr_format_I *)instr)->rd] = *pc + 1;
 }
 
 //branch statements, type SB, shift of offest.
-void branch(Instr_format_SB *instr, uint32_t *pc){
-    int val;
-    switch (instr->funct3){
-        case BEQ:
-            val = int_regs[instr->rs1] == int_regs[instr->rs2];
-            break;
-        case BNE:
-            val = int_regs[instr->rs1] != int_regs[instr->rs2];
-            break;
-        case BLT:
-            val = int_regs[instr->rs1] < int_regs[instr->rs2];
-            break;
-        case BLTU:
-            val = ((uint32_t)int_regs[instr->rs1]) < ((uint32_t)int_regs[instr->rs2]);
-            break;
-        case BGE:
-            val = int_regs[instr->rs1] > int_regs[instr->rs2];
-            break;
-        case BGEU:
-            val = ((uint32_t)int_regs[instr->rs1]) > ((uint32_t)int_regs[instr->rs2]);
-            break;
-        default:
-            val = 0;
-            break;
-    }
-    if (!val) *pc = *pc + (get_imm_SB(instr) >> 2);
+void beq(uint32_t *instr, uint32_t *pc, int *running){
+    if (int_regs[((Instr_format_S *)instr)->rs1] != int_regs[((Instr_format_S *)instr)->rs2]) *pc = *pc + get_imm_S(((Instr_format_S *)instr));
+}
+void bne(uint32_t *instr, uint32_t *pc, int *running){
+    if (int_regs[((Instr_format_S *)instr)->rs1] == int_regs[((Instr_format_S *)instr)->rs2]) *pc = *pc + get_imm_S(((Instr_format_S *)instr));
+}
+void blt(uint32_t *instr, uint32_t *pc, int *running){
+    if (int_regs[((Instr_format_S *)instr)->rs1] >= int_regs[((Instr_format_S *)instr)->rs2]) *pc = *pc + get_imm_S(((Instr_format_S *)instr));
+}
+void bltu(uint32_t *instr, uint32_t *pc, int *running){
+    if (((uint32_t)int_regs[((Instr_format_S *)instr)->rs1]) >= ((uint32_t)int_regs[((Instr_format_S *)instr)->rs2])) *pc = *pc + get_imm_S(((Instr_format_S *)instr));
+}
+void bge(uint32_t *instr, uint32_t *pc, int *running){
+    if (int_regs[((Instr_format_S *)instr)->rs1] <= int_regs[((Instr_format_S *)instr)->rs2]) *pc = *pc + get_imm_S(((Instr_format_S *)instr));
+}
+void bgeu(uint32_t *instr, uint32_t *pc, int *running){
+    if (((uint32_t)int_regs[((Instr_format_S *)instr)->rs1]) <= ((uint32_t)int_regs[((Instr_format_S *)instr)->rs2])) *pc = *pc + get_imm_S(((Instr_format_S *)instr));
 }
 
 //load from int_memory, type I, The effective byte = s1 + IMM.
-void load(Instr_format_I *instr){
-    //if (instr->rd == 0) return;
-    switch (instr->funct3){
-        case LW:
-            int_regs[instr->rd] = *(int32_t *)(memory+(int_regs[instr->rs1] + get_imm_I(instr)));
-            break;
-        case LH:
-            int_regs[instr->rd] = *(int16_t *)(memory+(int_regs[instr->rs1] + get_imm_I(instr)));
-            break;
-        case LHU:
-            int_regs[instr->rd] = *(uint16_t *)(memory+(int_regs[instr->rs1] + get_imm_I(instr)));
-            break;
-        case LB:
-            int_regs[instr->rd] = *(int8_t *)(memory+(int_regs[instr->rs1] + get_imm_I(instr)));
-            break;
-        case LBU:
-            int_regs[instr->rd] = *(uint8_t *)(memory+(int_regs[instr->rs1] + get_imm_I(instr)));
-            break;
-        default:
-            break;
-    }
+void lw(uint32_t *instr, uint32_t *pc, int *running){
+    int_regs[((Instr_format_I *)instr)->rd] = *(int32_t *)(memory+(int_regs[((Instr_format_I *)instr)->rs1] + get_imm_I(((Instr_format_I *)instr))));
 }
+void lh(uint32_t *instr, uint32_t *pc, int *running){
+    int_regs[((Instr_format_I *)instr)->rd] = *(int16_t *)(memory+(int_regs[((Instr_format_I *)instr)->rs1] + get_imm_I(((Instr_format_I *)instr))));
+}
+void lhu(uint32_t *instr, uint32_t *pc, int *running){
+    int_regs[((Instr_format_I *)instr)->rd] = *(uint16_t *)(memory+(int_regs[((Instr_format_I *)instr)->rs1] + get_imm_I(((Instr_format_I *)instr))));
+}
+void lb(uint32_t *instr, uint32_t *pc, int *running){
+    int_regs[((Instr_format_I *)instr)->rd] = *(int8_t *)(memory+(int_regs[((Instr_format_I *)instr)->rs1] + get_imm_I(((Instr_format_I *)instr))));
+}
+void lbu(uint32_t *instr, uint32_t *pc, int *running){
+    int_regs[((Instr_format_I *)instr)->rd] = *(uint8_t *)(memory+(int_regs[((Instr_format_I *)instr)->rs1] + get_imm_I(((Instr_format_I *)instr))));
+}
+
 
 //store to int_memory, type S, The effective byte = s1 + IMM.
-void store(Instr_format_S *instr){
-    switch (instr->funct3){
-        case SW:
-            *(int32_t *)(memory+(int_regs[instr->rs1] + get_imm_S(instr))) = int_regs[instr->rs2];
-            break;
-        case SH:
-            *(int16_t *)(memory+(int_regs[instr->rs1] + get_imm_S(instr))) = (int16_t) (int_regs[instr->rs2] & 0xFFFF);
-            break;
-        case SB:
-            *(int8_t *)(memory+(int_regs[instr->rs1] + get_imm_S(instr))) = (int8_t) (int_regs[instr->rs2] & 0xFF);
-            break;
-        default:
-            break;
-    }
+void sw(uint32_t *instr, uint32_t *pc, int *running){
+    *(int32_t *)(memory+(int_regs[((Instr_format_S *)instr)->rs1] + get_imm_S(((Instr_format_S *)instr)))) = int_regs[((Instr_format_S *)instr)->rs2];
 }
-
-
-//RV32F/RV32D
+void sh(uint32_t *instr, uint32_t *pc, int *running){
+    *(int16_t *)(memory+(int_regs[((Instr_format_S *)instr)->rs1] + get_imm_S(((Instr_format_S *)instr)))) = (int16_t) (int_regs[((Instr_format_S *)instr)->rs2] & 0xFFFF);
+}
+void sb(uint32_t *instr, uint32_t *pc, int *running){
+    *(int8_t *)(memory+(int_regs[((Instr_format_S *)instr)->rs1] + get_imm_S(((Instr_format_S *)instr)))) = (int8_t) (int_regs[((Instr_format_S *)instr)->rs2] & 0xFF);
+}
 
 //load from int_memory, type I, The effective byte = s1 + IMM.
-void load_fp(Instr_format_I *instr){
-    switch(instr->funct3) {
-        case DLE:
-            fpt_regs[instr->rd] = *(double *)(memory+(int_regs[instr->rs1] + get_imm_I(instr)));
-            break;
-        case FLT:
-            fpt_regs[instr->rd] = *(float *)(memory+(int_regs[instr->rs1] + get_imm_I(instr)));
-            break;
-        default:
-            break;
-    }
+void fld(uint32_t *instr, uint32_t *pc, int *running){
+    fpt_regs[((Instr_format_I *)instr)->rd] = *(double *)(memory+(int_regs[((Instr_format_I *)instr)->rs1] + get_imm_I(((Instr_format_I *)instr))));
+}
+void flw(uint32_t *instr, uint32_t *pc, int *running){
+    fpt_regs[((Instr_format_I *)instr)->rd] = *(float *)(memory+(int_regs[((Instr_format_I *)instr)->rs1] + get_imm_I(((Instr_format_I *)instr))));
 }
 
 //store to int_memory, type S, The effective byte = s1 + IMM.
-void store_fp(Instr_format_S *instr){
-    switch(instr->funct3) {
-        case DLE:
-            *(double *)(memory+(int_regs[instr->rs1] + get_imm_S(instr))) = fpt_regs[instr->rs2];
-            break;
-        case FLT:
-            *(float *)(memory+(int_regs[instr->rs1] + get_imm_S(instr))) = (float)fpt_regs[instr->rs2];
-            break;
-        default:
-            break;
-    }
+void fsd(uint32_t *instr, uint32_t *pc, int *running){
+    *(double *)(memory+(int_regs[((Instr_format_S *)instr)->rs1] + get_imm_S(((Instr_format_S *)instr)))) = fpt_regs[((Instr_format_S *)instr)->rs2];
+}
+void fsw(uint32_t *instr, uint32_t *pc, int *running){
+    *(float *)(memory+(int_regs[((Instr_format_S *)instr)->rs1] + get_imm_S(((Instr_format_S *)instr)))) = (float)fpt_regs[((Instr_format_S *)instr)->rs2];
 }
 
-void op_fp(Instr_format_R4 *instr){
-
-    switch(instr->rs3){
-        case FADD:
-            fpt_regs[instr->rd] = fpt_regs[instr->rs1] + fpt_regs[instr->rs2];
-            break;
-        case FSUB:
-            fpt_regs[instr->rd] = fpt_regs[instr->rs1] - fpt_regs[instr->rs2];
-            break;
-        case FMUL:
-            fpt_regs[instr->rd] = fpt_regs[instr->rs1] * fpt_regs[instr->rs2];
-            break;
-        case FDIV:
-            fpt_regs[instr->rd] = fpt_regs[instr->rs1] / fpt_regs[instr->rs2];
-            break;
-        case FSQRT:
-            fpt_regs[instr->rd] = sqrt(fpt_regs[instr->rs1]);
-            break;
-        case FCVT_fmt_int:
-            if (instr->rs2) {
-                int_regs[instr->rd] = (int32_t)((uint32_t)fpt_regs[instr->rs1]);
-            }else{
-                int_regs[instr->rd] = (int32_t)fpt_regs[instr->rs1];
-            }
-            break;
-        case FCVT_int_fmt:
-            if (instr->rs2) {
-                fpt_regs[instr->rd] = (uint32_t)fpt_regs[instr->rs1];
-            }else{
-                fpt_regs[instr->rd] = int_regs[instr->rs1];
-            }
-            break;
-        case FCMP:
-            switch (instr->funct3){
-                case F_EQ:
-                    int_regs[instr->rd] = fpt_regs[instr->rs1] == fpt_regs[instr->rs2];
-                    break;
-                case F_LT:
-                    int_regs[instr->rd] = fpt_regs[instr->rs1] < fpt_regs[instr->rs2];
-                    break;
-                case F_LE:
-                    int_regs[instr->rd] = fpt_regs[instr->rs1] <= fpt_regs[instr->rs2];
-                    break;
-                default:
-                    break;
-            }
-            break;
-        default:
-            break;
-    }
+//floating point operation.
+void fadd(uint32_t *instr, uint32_t *pc, int *running){
+    fpt_regs[((Instr_format_R *)instr)->rd] = fpt_regs[((Instr_format_R *)instr)->rs1] + fpt_regs[((Instr_format_R *)instr)->rs2];
+}
+void fsub(uint32_t *instr, uint32_t *pc, int *running){
+    fpt_regs[((Instr_format_R *)instr)->rd] = fpt_regs[((Instr_format_R *)instr)->rs1] - fpt_regs[((Instr_format_R *)instr)->rs2];
+}
+void fmul(uint32_t *instr, uint32_t *pc, int *running){
+    fpt_regs[((Instr_format_R *)instr)->rd] = fpt_regs[((Instr_format_R *)instr)->rs1] * fpt_regs[((Instr_format_R *)instr)->rs2];
+}
+void fdiv(uint32_t *instr, uint32_t *pc, int *running){
+    fpt_regs[((Instr_format_R *)instr)->rd] = fpt_regs[((Instr_format_R *)instr)->rs1] / fpt_regs[((Instr_format_R *)instr)->rs2];
+}
+void fsqrt(uint32_t *instr, uint32_t *pc, int *running){
+    fpt_regs[((Instr_format_R *)instr)->rd] = sqrt(fpt_regs[((Instr_format_R *)instr)->rs1]);
+}
+void fcvt_d_wu(uint32_t *instr, uint32_t *pc, int *running){
+    int_regs[((Instr_format_R *)instr)->rd] = (int32_t)((uint32_t)fpt_regs[((Instr_format_R *)instr)->rs1]);
+}
+void fcvt_d_w(uint32_t *instr, uint32_t *pc, int *running){
+    int_regs[((Instr_format_R *)instr)->rd] = (int32_t)fpt_regs[((Instr_format_R *)instr)->rs1];
+}
+void fcvt_wu_d(uint32_t *instr, uint32_t *pc, int *running){
+    fpt_regs[((Instr_format_R *)instr)->rd] = (uint32_t)fpt_regs[((Instr_format_R *)instr)->rs1];
+}
+void fcvt_w_d(uint32_t *instr, uint32_t *pc, int *running){
+    fpt_regs[((Instr_format_R *)instr)->rd] = int_regs[((Instr_format_R *)instr)->rs1];
+}
+void f_eq(uint32_t *instr, uint32_t *pc, int *running){
+    int_regs[((Instr_format_R *)instr)->rd] = fpt_regs[((Instr_format_R *)instr)->rs1] == fpt_regs[((Instr_format_R *)instr)->rs2];
+}
+void f_lt(uint32_t *instr, uint32_t *pc, int *running){
+    int_regs[((Instr_format_R *)instr)->rd] = fpt_regs[((Instr_format_R *)instr)->rs1] < fpt_regs[((Instr_format_R *)instr)->rs2];
+}
+void f_le(uint32_t *instr, uint32_t *pc, int *running){
+    int_regs[((Instr_format_R *)instr)->rd] = fpt_regs[((Instr_format_R *)instr)->rs1] <= fpt_regs[((Instr_format_R *)instr)->rs2];
 }
 
-//rs1 * rs2 + rs3, type R4
-void fmadd(Instr_format_R4 *instr){
-    fpt_regs[instr->rd] = fpt_regs[instr->rs1] * fpt_regs[instr->rs2] + fpt_regs[instr->rs3];
-}
-
-//rs1 * rs2 - rs3, type R4
-void fmsub(Instr_format_R4 *instr){
-    fpt_regs[instr->rd] = fpt_regs[instr->rs1] * fpt_regs[instr->rs2] - fpt_regs[instr->rs3];
-}
-
-//-(rs1 * rs2 + rs3), type R4
-void fnmadd(Instr_format_R4 *instr){
-    fpt_regs[instr->rd] = -(fpt_regs[instr->rs1] * fpt_regs[instr->rs2] + fpt_regs[instr->rs3]);
-}
-
-//-(rs1 * rs2 - rs3), type R4
-void fnmsub(Instr_format_R4 *instr){
-    fpt_regs[instr->rd] = -(fpt_regs[instr->rs1] * fpt_regs[instr->rs2] - fpt_regs[instr->rs3]);
-}
-
-void io(Instr_format_U *instr){
+void scan(uint32_t *instr, uint32_t *pc, int *running){
     //decode
-    uint32_t in = instr->imm12_31;
+    uint32_t in = ((Instr_format_U *)instr)->imm;
     char fm[11] = "%";
     char mk[4] = "";
 
-    if ((in >> 1) & 1) {//print literals
+    if (in & 1) {//print literals
         if ((in >> 2) & 0xFF) printf("%c", (in >> 2) & 0xFF);
         if ((in >> 10) & 0xFF) printf("%c", (in >> 10) & 0xFF);
         return;
     }
 
-    switch ((in >> 17) & 7){//flag
+    switch ((in >> 16) & 7){//flag
         case 0://no flag
             break;
         case 1://-
@@ -355,21 +260,21 @@ void io(Instr_format_U *instr){
     }
 
     //field width, not doing if equal to 0
-    uint32_t i = (in >> 13) & 15;
+    uint32_t i = (in >> 12) & 15;
     if (i > 0){
         sprintf(mk, "%u", i);
         strcat(fm, mk);
     }
 
     //precision, not doing if equal to 0
-    i = (in >> 9) & 15;
+    i = (in >> 8) & 15;
     if (i > 0){
         sprintf(mk, ".%u", i);
         strcat(fm, mk);
     }
 
     //length
-    switch ((in >> 6) & 7){
+    switch ((in >> 5) & 7){
         case 0:
             break;
         case 1:
@@ -392,7 +297,136 @@ void io(Instr_format_U *instr){
     }
 
     //type
-    switch ((in >> 2) & 15){
+    switch ((in >> 1) & 15){
+        case 0://"d"
+            strcat(fm, "d");
+            break;
+        case 1://"u"
+            strcat(fm, "u");
+            break;
+        case 2://"f"
+            strcat(fm, "f");
+            break;
+        case 3://"F"
+            strcat(fm, "F");
+            break;
+        case 4://"e"
+            strcat(fm, "e");
+            break;
+        case 5://"E"
+            strcat(fm, "E");
+            break;
+        case 6://"g"
+            strcat(fm, "g");
+            break;
+        case 7://"G"
+            strcat(fm, "G");
+            break;
+        case 8://"x"
+            strcat(fm, "x");
+            break;
+        case 9://"X"
+            strcat(fm, "X");
+            break;
+        case 10://"o"
+            strcat(fm, "o");
+            break;
+        case 11://"c"
+            strcat(fm, "c");
+            break;
+        case 12://"a"
+            strcat(fm, "a");
+            break;
+        case 13://"A"
+            strcat(fm, "A");
+            break;
+        case 14://"i"
+            strcat(fm, "i");
+            break;
+        default:
+            break;
+    }
+    if (((in >> 2) & 15) >= 2 && ((in >> 2) & 15) <= 7){//fpt
+        scanf(fm, &(fpt_regs[((Instr_format_U *)instr)->rd]));
+    }
+    else{//int
+        scanf(fm, &(int_regs[((Instr_format_U *)instr)->rd]));
+    }
+}
+
+void print(uint32_t *instr, uint32_t *pc, int *running){
+    //decode
+    uint32_t in = ((Instr_format_U *)instr)->imm;
+    char fm[11] = "%";
+    char mk[4] = "";
+
+    if (in & 1) {//print literals
+        if ((in >> 2) & 0xFF) printf("%c", (in >> 2) & 0xFF);
+        if ((in >> 10) & 0xFF) printf("%c", (in >> 10) & 0xFF);
+        return;
+    }
+
+    switch ((in >> 16) & 7){//flag
+        case 0://no flag
+            break;
+        case 1://-
+            strcat(fm, "-");
+            break;
+        case 2://+
+            strcat(fm, "+");
+            break;
+        case 3://" "
+            strcat(fm, " ");
+            break;
+        case 4://0
+            strcat(fm, "0");
+            break;
+        case 5://#
+            strcat(fm, "#");
+            break;
+        default:
+            break;
+    }
+
+    //field width, not doing if equal to 0
+    uint32_t i = (in >> 12) & 15;
+    if (i > 0){
+        sprintf(mk, "%u", i);
+        strcat(fm, mk);
+    }
+
+    //precision, not doing if equal to 0
+    i = (in >> 8) & 15;
+    if (i > 0){
+        sprintf(mk, ".%u", i);
+        strcat(fm, mk);
+    }
+
+    //length
+    switch ((in >> 5) & 7){
+        case 0:
+            break;
+        case 1:
+            strcat(fm, "hh");
+            break;
+        case 2:
+            strcat(fm, "h");
+            break;
+        case 3:
+            strcat(fm, "l");
+            break;
+        case 4:
+            strcat(fm, "ll");
+            break;
+        case 5:
+            strcat(fm, "L");
+            break;
+        default:
+            break;
+    }
+
+    //type
+    switch ((in >> 1) & 15){
         case 0://"d"
             strcat(fm, "d");
             break;
@@ -443,20 +477,30 @@ void io(Instr_format_U *instr){
     }
 
     //printf("%s", fm);
-    if (in & 1){//output
-        if (((in >> 2) & 15) >= 2 && ((in >> 2) & 15) <= 7){//fpt
-            printf(fm, fpt_regs[instr->rd]);
-        }
-        else{//int
-            printf(fm, int_regs[instr->rd]);
-        }
+    if (((in >> 2) & 15) >= 2 && ((in >> 2) & 15) <= 7){//fpt
+        printf(fm, fpt_regs[((Instr_format_U *)instr)->rd]);
     }
-    else{//input
-        if (((in >> 2) & 15) >= 2 && ((in >> 2) & 15) <= 7){//fpt
-            scanf(fm, &(fpt_regs[instr->rd]));
-        }
-        else{//int
-            scanf(fm, &(int_regs[instr->rd]));
-        }
+    else{//int
+        printf(fm, int_regs[((Instr_format_U *)instr)->rd]);
     }
+}
+
+
+void call(uint32_t *instr, uint32_t *pc, int *running){
+    run(*pc + get_imm_UJ(((Instr_format_U *)instr)));
+}
+
+void callr(uint32_t *instr, uint32_t *pc, int *running) {
+    run(*pc + (int_regs[((Instr_format_I *)instr)->rs1] + get_imm_I(((Instr_format_I *)instr))));
+}
+
+void ret(uint32_t *instr, uint32_t *pc, int *running){
+    (*running) = 0;
+}
+void reallocation(uint32_t *instr, uint32_t *pc, int *running){
+    memory = realloc(memory, (uint32_t)int_regs[((Instr_format_U *)instr)->rd]);
+}
+
+void Exit(uint32_t *instr, uint32_t *pc, int *running){
+    on_error(0);//Halt
 }

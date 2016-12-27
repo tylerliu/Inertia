@@ -13,13 +13,12 @@
 #include <errno.h>
 #include <string.h>
 
-#include "Instr_set.h"
 #include "RegMem.h"
 #include "Execution.h"
 
 
 //Error type
-#define Exit 0
+#define Halt 0
 #define IOException 1
 #define AllocationException 2
 #define ArrayOutOfBoundException 3
@@ -27,10 +26,17 @@
 FILE *f;
 uint32_t len_program;
 uint32_t *program;
-
+//dictionary
+const int length_op = 69;
+void (*ops[length_op])(uint32_t *, uint32_t *, int *) = {&addi, &slti, &sltui, &andi, &ori, &xori, &slli, &srli, &srai, &muli, &divi, &divui, &remi, & remui,
+                                 &add, &sub, &slt, &sltu, &and, &or, &xor, &sll, &srl, &sra, &mul, &division, &divu, &rem,
+                                 &remu, &lui, &jal, &jalr, &beq, &bne, &blt, &bltu, &bge, &bgeu, &lw, &lh,
+                                 &lhu, &lb, &lbu, &sw, &sh, &sb, &flw, &fld, &fsw, &fsd, &fadd, &fsub, &fmul, &fdiv,
+                                 &fsqrt, &fcvt_d_w, &fcvt_d_wu, &fcvt_w_d, &fcvt_wu_d, &f_eq, &f_lt, &f_le,
+                                 &scan, &print, &call, &callr, &ret, &reallocation, &Exit};
 void on_error(int type) {
     switch (type) {
-        case Exit:
+        case Halt:
             break;
         case ArrayOutOfBoundException:
             printf("Instruction array out of bound\n");
@@ -41,6 +47,7 @@ void on_error(int type) {
     }
     fclose(f);
     free(program);
+    free(memory);
     exit(type);
 }
 
@@ -55,85 +62,13 @@ uint32_t fetch(uint32_t *pc) {
 
 void run(uint32_t pc);
 
-void func(Instr_format_U *instr, uint32_t *pc, int *running){
-    if ((instr->imm12_31) == 0){//call, have to follow with JAL/JALR
-        (*pc) ++;
-        run(*pc - 1);//start at JAL/JALR
-    }
-    if ((instr->imm12_31) == 1){//return
-        (*running) = 0;
-    }
-    if ((instr->imm12_31) == 2){//realloc();
-        memory = realloc(memory, (uint32_t)int_regs[instr->rd]);
-    }
-    if ((instr->imm12_31) == 3){
-        on_error(Exit);
-    }
-}
-
 /* evaluate the last decoded instruction */
 void eval(int *running, uint32_t *pc) {
     uint32_t instr;
     instr = fetch(pc);
     //printf("NUM: %d\n", instr);
-    switch ((instr) & 127) {
-        case OP_IMM:
-            op_imm((Instr_format_I *)&instr);
-            break;
-        case OP:
-            op((Instr_format_R *)&instr);
-            break;
-        case LUI:
-            lui((Instr_format_U *)&instr);
-            break;
-        case AUIPC:
-            auipc((Instr_format_U *)&instr, pc);
-            break;
-        case JAL:
-            jal((Instr_format_UJ *)&instr, pc);
-            break;
-        case JALR:
-            jalr((Instr_format_I *)&instr,pc);
-            break;
-        case BRANCH:
-            branch((Instr_format_SB *)&instr, pc);
-            break;
-        case LOAD:
-            load((Instr_format_I *)&instr);
-            break;
-        case STORE:
-            store((Instr_format_S *)&instr);
-            break;
-        case IO:
-            io((Instr_format_U *)&instr);
-            break;
-        case FUNC:
-            func((Instr_format_U *)&instr, pc, running);
-            break;
-        case LOAD_FP:
-            load_fp((Instr_format_I *)&instr);
-            break;
-        case STORE_FP:
-            store_fp((Instr_format_S *)&instr);
-            break;
-        case OP_FP:
-            op_fp((Instr_format_R4 *)&instr);
-            break;
-        case FMADD:
-            fmadd((Instr_format_R4 *)&instr);
-            break;
-        case FMSUB:
-            fmsub((Instr_format_R4 *)&instr);
-            break;
-        case FNMADD:
-            fnmadd((Instr_format_R4 *)&instr);
-            break;
-        case FNMSUB:
-            fnmsub((Instr_format_R4 *)&instr);
-            break;
-        default:
-            on_error(-1);
-    }
+    ops[(instr) & 0xFF](&instr, pc, running);
+
 }
 
 // run with program counter
@@ -186,5 +121,6 @@ int main( int argc, const char * argv[] )
     //execute
     run(0);
     free(program);
+    free(memory);
     return 0;
 }
