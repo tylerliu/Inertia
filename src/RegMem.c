@@ -7,4 +7,10 @@
 //
 //  Register and Memory model
 
+#include <stdlib.h>
+#include <printf.h>
+#include <memory.h>
+#include <errno.h>
 #include "RegMem.h"
+#include "Execution.h"
+

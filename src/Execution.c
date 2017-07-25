@@ -8,224 +8,241 @@
 //  execution function
 
 #include "Execution.h"
+#include "Instr_set.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 
 // Integer Register-Immediate Instructions, type I
-void addi(uint32_t *instr, uint32_t *pc, int *running){
+void addi(uint32_t *instr){
     int_regs[(((Instr_format_I *)instr))->rd] = int_regs[((Instr_format_I *)instr)->rs1] + get_imm_I(((Instr_format_I *)instr));
     }
-void slti(uint32_t *instr, uint32_t *pc, int *running){
+void slti(uint32_t *instr){
     int_regs[((Instr_format_I *)instr)->rd] = int_regs[((Instr_format_I *)instr)->rs1] < get_imm_I(((Instr_format_I *)instr));
     }
-void sltui(uint32_t *instr, uint32_t *pc, int *running){
+void sltui(uint32_t *instr){
     int_regs[((Instr_format_I *)instr)->rd] = (uint32_t)int_regs[((Instr_format_I *)instr)->rs1] < get_imm_I(((Instr_format_I *)instr));
     }
-void andi(uint32_t *instr, uint32_t *pc, int *running){
+void andi(uint32_t *instr){
     int_regs[((Instr_format_I *)instr)->rd] = int_regs[((Instr_format_I *)instr)->rs1] & get_imm_I(((Instr_format_I *)instr));
     }
-void ori(uint32_t *instr, uint32_t *pc, int *running){
+void ori(uint32_t *instr){
     int_regs[((Instr_format_I *)instr)->rd] = int_regs[((Instr_format_I *)instr)->rs1] | get_imm_I(((Instr_format_I *)instr));
     }
-void xori(uint32_t *instr, uint32_t *pc, int *running){
+void xori(uint32_t *instr){
     int_regs[((Instr_format_I *)instr)->rd] = int_regs[((Instr_format_I *)instr)->rs1] ^ get_imm_I(((Instr_format_I *)instr));
     }
-void slli(uint32_t *instr, uint32_t *pc, int *running){
+void slli(uint32_t *instr){
     int_regs[((Instr_format_I *)instr)->rd] = (int_regs[((Instr_format_I *)instr)->rs1] << (((Instr_format_I *)instr)->imm & 31));
     }
-void srai(uint32_t *instr, uint32_t *pc, int *running){
+void srai(uint32_t *instr){
     int_regs[((Instr_format_I *)instr)->rd] = (int_regs[((Instr_format_I *)instr)->rs1] >> (((Instr_format_I *)instr)->imm & 31));//signed
 }
-void srli(uint32_t *instr, uint32_t *pc, int *running){
+void srli(uint32_t *instr){
     int_regs[((Instr_format_I *)instr)->rd] = (int32_t)((uint32_t)int_regs[((Instr_format_I *)instr)->rs1] >> (((Instr_format_I *)instr)->imm & 31));//unsigned
 }
-void muli(uint32_t *instr, uint32_t *pc, int *running){
+void muli(uint32_t *instr){
     int_regs[((Instr_format_I *)instr)->rd] = int_regs[((Instr_format_I *)instr)->rs1] * get_imm_I(((Instr_format_I *)instr));
 }
-void divi(uint32_t *instr, uint32_t *pc, int *running){
+void divi(uint32_t *instr){
     int_regs[((Instr_format_I *)instr)->rd] = int_regs[((Instr_format_I *)instr)->rs1] / get_imm_I(((Instr_format_I *)instr));
 }
-void divui(uint32_t *instr, uint32_t *pc, int *running){
+void divui(uint32_t *instr){
     int_regs[((Instr_format_I *)instr)->rd] = (int32_t)((uint32_t)int_regs[((Instr_format_I *)instr)->rs1] / ((Instr_format_I *)instr)->imm);
 }
-void remi(uint32_t *instr, uint32_t *pc, int *running){
+void remi(uint32_t *instr){
     int_regs[((Instr_format_I *)instr)->rd] = int_regs[((Instr_format_I *)instr)->rs1] % get_imm_I(((Instr_format_I *)instr));
 }
-void remui(uint32_t *instr, uint32_t *pc, int *running){
+void remui(uint32_t *instr){
     int_regs[((Instr_format_I *)instr)->rd] = (int32_t)((uint32_t)int_regs[((Instr_format_I *)instr)->rs1] % ((Instr_format_I *)instr)->imm);
 }
 
 //Integer Register-Register Operations, type R
-void add(uint32_t *instr, uint32_t *pc, int *running){
+void add(uint32_t *instr){
     int_regs[((Instr_format_R *)instr)->rd] = int_regs[((Instr_format_R *)instr)->rs1] + int_regs[((Instr_format_R *)instr)->rs2];
     }
-void sub(uint32_t *instr, uint32_t *pc, int *running){
+void sub(uint32_t *instr){
     int_regs[((Instr_format_R *)instr)->rd] = int_regs[((Instr_format_R *)instr)->rs1] - int_regs[((Instr_format_R *)instr)->rs2];
     }
-void slt(uint32_t *instr, uint32_t *pc, int *running){
+void slt(uint32_t *instr){
     int_regs[((Instr_format_R *)instr)->rd] = int_regs[((Instr_format_R *)instr)->rs1] < int_regs[((Instr_format_R *)instr)->rs2];
     }
-void sltu(uint32_t *instr, uint32_t *pc, int *running){
+void sltu(uint32_t *instr){
     int_regs[((Instr_format_R *)instr)->rd] = (uint32_t) int_regs[((Instr_format_R *)instr)->rs1] < int_regs[((Instr_format_R *)instr)->rs2];
     }
-void and(uint32_t *instr, uint32_t *pc, int *running){
+void and(uint32_t *instr){
     int_regs[((Instr_format_R *)instr)->rd] = int_regs[((Instr_format_R *)instr)->rs1] & int_regs[((Instr_format_R *)instr)->rs2];
     }
-void or(uint32_t *instr, uint32_t *pc, int *running){
+void or(uint32_t *instr){
     int_regs[((Instr_format_R *)instr)->rd] = int_regs[((Instr_format_R *)instr)->rs1] | int_regs[((Instr_format_R *)instr)->rs2];
     }
-void xor(uint32_t *instr, uint32_t *pc, int *running){
+void xor(uint32_t *instr){
     int_regs[((Instr_format_R *)instr)->rd] = int_regs[((Instr_format_R *)instr)->rs1] ^ int_regs[((Instr_format_R *)instr)->rs2];
     }
-void sll(uint32_t *instr, uint32_t *pc, int *running){
+void sll(uint32_t *instr){
     int_regs[((Instr_format_R *)instr)->rd] = (int_regs[((Instr_format_R *)instr)->rs1] << (int_regs[((Instr_format_R *)instr)->rs2] & 31));
     }
-void sra(uint32_t *instr, uint32_t *pc, int *running){
+void sra(uint32_t *instr){
         int_regs[((Instr_format_R *)instr)->rd] = (int_regs[((Instr_format_R *)instr)->rs1] >> (int_regs[((Instr_format_R *)instr)->rs2] & 31));
     }
-void srl(uint32_t *instr, uint32_t *pc, int *running){
+void srl(uint32_t *instr){
         int_regs[((Instr_format_R *)instr)->rd] = (int32_t) ((uint32_t) int_regs[((Instr_format_R *)instr)->rs1]
                 >> (int_regs[((Instr_format_R *)instr)->rs2] & 31));
     }
-void mul(uint32_t *instr, uint32_t *pc, int *running){
+void mul(uint32_t *instr){
     int_regs[((Instr_format_R *)instr)->rd] = int_regs[((Instr_format_R *)instr)->rs1] * int_regs[((Instr_format_R *)instr)->rs2];
     }
-void division(uint32_t *instr, uint32_t *pc, int *running){
+void division(uint32_t *instr){
     int_regs[((Instr_format_R *)instr)->rd] = int_regs[((Instr_format_R *)instr)->rs1] / int_regs[((Instr_format_R *)instr)->rs2];
     }
-void divu(uint32_t *instr, uint32_t *pc, int *running){
+void divu(uint32_t *instr){
     int_regs[((Instr_format_R *)instr)->rd] = (int32_t)((uint32_t)int_regs[((Instr_format_R *)instr)->rs1] / (uint32_t)int_regs[((Instr_format_R *)instr)->rs2]);
     }
-void rem(uint32_t *instr, uint32_t *pc, int *running){
+void rem(uint32_t *instr){
     int_regs[((Instr_format_R *)instr)->rd] = int_regs[((Instr_format_R *)instr)->rs1] % int_regs[((Instr_format_R *)instr)->rs2];
     }
-void remu(uint32_t *instr, uint32_t *pc, int *running){
+void remu(uint32_t *instr){
     int_regs[((Instr_format_R *)instr)->rd] = (int32_t)((uint32_t)int_regs[((Instr_format_R *)instr)->rs1] % (uint32_t)int_regs[((Instr_format_R *)instr)->rs2]);
     }
 
 //load upper immediate, type U, load imm to dest.
-void lui(uint32_t *instr, uint32_t *pc, int *running){
-    //if (instr->rd == 0) return;
+void lui(uint32_t *instr){
     int_regs[((Instr_format_U *)instr)->rd] = get_imm_U(((Instr_format_U *)instr));
 }
 
-//Unconditional jumps, type UJ, add immediate to pc.if dest = 0, plain jump. store pc+4 to dest after jump.
-void jal(uint32_t *instr, uint32_t *pc, int *running){
-    *pc = *pc + get_imm_UJ(((Instr_format_U *)instr));
-    if (((Instr_format_U *)instr)->rd != 0) int_regs[((Instr_format_U *)instr)->rd] = *pc + 1;
+//add upper immediate to pc, type U, load imm + pc to dest.
+void auipc(uint32_t *instr){
+    int_regs[((Instr_format_U *)instr)->rd] = pc + get_imm_U(((Instr_format_U *)instr));
 }
 
-//jump and link register, type I, store pc+4 to dest after jump.
-void jalr(uint32_t *instr, uint32_t *pc, int *running){
-    *pc = *pc + (int_regs[((Instr_format_I *)instr)->rs1] + get_imm_I(((Instr_format_I *)instr)));
-    if (((Instr_format_I *)instr)->rd != 0) int_regs[((Instr_format_I *)instr)->rd] = *pc + 1;
+//Unconditional jumps, type UJ, add immediate to pc.if dest = 0, plain jump. store pc+1 to dest after jump.(next instr)
+void jal(uint32_t *instr){
+    if (((Instr_format_U *)instr)->rd != 0) int_regs[((Instr_format_U *)instr)->rd] = pc;
+    pc = pc + get_imm_UJ(((Instr_format_U *)instr));
+}
+
+//jump and link register, type I, store pc+4 to dest after jump.(next instr)
+void jalr(uint32_t *instr){
+    if (((Instr_format_I *)instr)->rd != 0) int_regs[((Instr_format_I *)instr)->rd] = pc;
+    pc = (uint32_t)((uint32_t)int_regs[((Instr_format_I *)instr)->rs1] + get_imm_I(((Instr_format_I *)instr)));
 }
 
 //branch statements, type SB, shift of offest.
-void beq(uint32_t *instr, uint32_t *pc, int *running){
-    if (int_regs[((Instr_format_S *)instr)->rs1] != int_regs[((Instr_format_S *)instr)->rs2]) *pc = *pc + get_imm_S(((Instr_format_S *)instr));
+void beq(uint32_t *instr){
+    if (int_regs[((Instr_format_S *)instr)->rs1] == int_regs[((Instr_format_S *)instr)->rs2]) pc = pc + get_imm_S(((Instr_format_S *)instr));
 }
-void bne(uint32_t *instr, uint32_t *pc, int *running){
-    if (int_regs[((Instr_format_S *)instr)->rs1] == int_regs[((Instr_format_S *)instr)->rs2]) *pc = *pc + get_imm_S(((Instr_format_S *)instr));
+void bne(uint32_t *instr){
+    if (int_regs[((Instr_format_S *)instr)->rs1] != int_regs[((Instr_format_S *)instr)->rs2]) pc = pc + get_imm_S(((Instr_format_S *)instr));
 }
-void blt(uint32_t *instr, uint32_t *pc, int *running){
-    if (int_regs[((Instr_format_S *)instr)->rs1] >= int_regs[((Instr_format_S *)instr)->rs2]) *pc = *pc + get_imm_S(((Instr_format_S *)instr));
+void blt(uint32_t *instr){
+    if (int_regs[((Instr_format_S *)instr)->rs1] < int_regs[((Instr_format_S *)instr)->rs2]) pc = pc + get_imm_S(((Instr_format_S *)instr));
 }
-void bltu(uint32_t *instr, uint32_t *pc, int *running){
-    if (((uint32_t)int_regs[((Instr_format_S *)instr)->rs1]) >= ((uint32_t)int_regs[((Instr_format_S *)instr)->rs2])) *pc = *pc + get_imm_S(((Instr_format_S *)instr));
+void bltu(uint32_t *instr){
+    if (((uint32_t)int_regs[((Instr_format_S *)instr)->rs1]) < ((uint32_t)int_regs[((Instr_format_S *)instr)->rs2])) pc = pc + get_imm_S(((Instr_format_S *)instr));
 }
-void bge(uint32_t *instr, uint32_t *pc, int *running){
-    if (int_regs[((Instr_format_S *)instr)->rs1] <= int_regs[((Instr_format_S *)instr)->rs2]) *pc = *pc + get_imm_S(((Instr_format_S *)instr));
+void bge(uint32_t *instr){
+    if (int_regs[((Instr_format_S *)instr)->rs1] > int_regs[((Instr_format_S *)instr)->rs2]) pc = pc + get_imm_S(((Instr_format_S *)instr));
 }
-void bgeu(uint32_t *instr, uint32_t *pc, int *running){
-    if (((uint32_t)int_regs[((Instr_format_S *)instr)->rs1]) <= ((uint32_t)int_regs[((Instr_format_S *)instr)->rs2])) *pc = *pc + get_imm_S(((Instr_format_S *)instr));
+void bgeu(uint32_t *instr){
+    if (((uint32_t)int_regs[((Instr_format_S *)instr)->rs1]) > ((uint32_t)int_regs[((Instr_format_S *)instr)->rs2])) pc = pc + get_imm_S(((Instr_format_S *)instr));
 }
 
 //load from int_memory, type I, The effective byte = s1 + IMM.
-void lw(uint32_t *instr, uint32_t *pc, int *running){
+void lw(uint32_t *instr){
     int_regs[((Instr_format_I *)instr)->rd] = *(int32_t *)(memory+(int_regs[((Instr_format_I *)instr)->rs1] + get_imm_I(((Instr_format_I *)instr))));
 }
-void lh(uint32_t *instr, uint32_t *pc, int *running){
+void lh(uint32_t *instr){
     int_regs[((Instr_format_I *)instr)->rd] = *(int16_t *)(memory+(int_regs[((Instr_format_I *)instr)->rs1] + get_imm_I(((Instr_format_I *)instr))));
 }
-void lhu(uint32_t *instr, uint32_t *pc, int *running){
+void lhu(uint32_t *instr){
     int_regs[((Instr_format_I *)instr)->rd] = *(uint16_t *)(memory+(int_regs[((Instr_format_I *)instr)->rs1] + get_imm_I(((Instr_format_I *)instr))));
 }
-void lb(uint32_t *instr, uint32_t *pc, int *running){
+void lb(uint32_t *instr){
     int_regs[((Instr_format_I *)instr)->rd] = *(int8_t *)(memory+(int_regs[((Instr_format_I *)instr)->rs1] + get_imm_I(((Instr_format_I *)instr))));
 }
-void lbu(uint32_t *instr, uint32_t *pc, int *running){
+void lbu(uint32_t *instr){
     int_regs[((Instr_format_I *)instr)->rd] = *(uint8_t *)(memory+(int_regs[((Instr_format_I *)instr)->rs1] + get_imm_I(((Instr_format_I *)instr))));
 }
 
 
 //store to int_memory, type S, The effective byte = s1 + IMM.
-void sw(uint32_t *instr, uint32_t *pc, int *running){
+void sw(uint32_t *instr){
     *(int32_t *)(memory+(int_regs[((Instr_format_S *)instr)->rs1] + get_imm_S(((Instr_format_S *)instr)))) = int_regs[((Instr_format_S *)instr)->rs2];
 }
-void sh(uint32_t *instr, uint32_t *pc, int *running){
+void sh(uint32_t *instr){
     *(int16_t *)(memory+(int_regs[((Instr_format_S *)instr)->rs1] + get_imm_S(((Instr_format_S *)instr)))) = (int16_t) (int_regs[((Instr_format_S *)instr)->rs2] & 0xFFFF);
 }
-void sb(uint32_t *instr, uint32_t *pc, int *running){
+void sb(uint32_t *instr){
     *(int8_t *)(memory+(int_regs[((Instr_format_S *)instr)->rs1] + get_imm_S(((Instr_format_S *)instr)))) = (int8_t) (int_regs[((Instr_format_S *)instr)->rs2] & 0xFF);
 }
 
 //load from int_memory, type I, The effective byte = s1 + IMM.
-void fld(uint32_t *instr, uint32_t *pc, int *running){
+void fld(uint32_t *instr){
     fpt_regs[((Instr_format_I *)instr)->rd] = *(double *)(memory+(int_regs[((Instr_format_I *)instr)->rs1] + get_imm_I(((Instr_format_I *)instr))));
 }
-void flw(uint32_t *instr, uint32_t *pc, int *running){
+void flw(uint32_t *instr){
     fpt_regs[((Instr_format_I *)instr)->rd] = *(float *)(memory+(int_regs[((Instr_format_I *)instr)->rs1] + get_imm_I(((Instr_format_I *)instr))));
 }
 
 //store to int_memory, type S, The effective byte = s1 + IMM.
-void fsd(uint32_t *instr, uint32_t *pc, int *running){
+void fsd(uint32_t *instr){
     *(double *)(memory+(int_regs[((Instr_format_S *)instr)->rs1] + get_imm_S(((Instr_format_S *)instr)))) = fpt_regs[((Instr_format_S *)instr)->rs2];
 }
-void fsw(uint32_t *instr, uint32_t *pc, int *running){
+void fsw(uint32_t *instr){
     *(float *)(memory+(int_regs[((Instr_format_S *)instr)->rs1] + get_imm_S(((Instr_format_S *)instr)))) = (float)fpt_regs[((Instr_format_S *)instr)->rs2];
 }
 
 //floating point operation.
-void fadd(uint32_t *instr, uint32_t *pc, int *running){
+void fadd(uint32_t *instr){
     fpt_regs[((Instr_format_R *)instr)->rd] = fpt_regs[((Instr_format_R *)instr)->rs1] + fpt_regs[((Instr_format_R *)instr)->rs2];
 }
-void fsub(uint32_t *instr, uint32_t *pc, int *running){
+void fsub(uint32_t *instr){
     fpt_regs[((Instr_format_R *)instr)->rd] = fpt_regs[((Instr_format_R *)instr)->rs1] - fpt_regs[((Instr_format_R *)instr)->rs2];
 }
-void fmul(uint32_t *instr, uint32_t *pc, int *running){
+void fmul(uint32_t *instr){
     fpt_regs[((Instr_format_R *)instr)->rd] = fpt_regs[((Instr_format_R *)instr)->rs1] * fpt_regs[((Instr_format_R *)instr)->rs2];
 }
-void fdiv(uint32_t *instr, uint32_t *pc, int *running){
+void fdiv(uint32_t *instr){
     fpt_regs[((Instr_format_R *)instr)->rd] = fpt_regs[((Instr_format_R *)instr)->rs1] / fpt_regs[((Instr_format_R *)instr)->rs2];
 }
-void fsqrt(uint32_t *instr, uint32_t *pc, int *running){
+void fsqrt(uint32_t *instr){
     fpt_regs[((Instr_format_R *)instr)->rd] = sqrt(fpt_regs[((Instr_format_R *)instr)->rs1]);
 }
-void fcvt_d_wu(uint32_t *instr, uint32_t *pc, int *running){
+void fcvt_d_wu(uint32_t *instr){
     int_regs[((Instr_format_R *)instr)->rd] = (int32_t)((uint32_t)fpt_regs[((Instr_format_R *)instr)->rs1]);
 }
-void fcvt_d_w(uint32_t *instr, uint32_t *pc, int *running){
+void fcvt_d_w(uint32_t *instr){
     int_regs[((Instr_format_R *)instr)->rd] = (int32_t)fpt_regs[((Instr_format_R *)instr)->rs1];
 }
-void fcvt_wu_d(uint32_t *instr, uint32_t *pc, int *running){
-    fpt_regs[((Instr_format_R *)instr)->rd] = (uint32_t)fpt_regs[((Instr_format_R *)instr)->rs1];
+void fcvt_wu_d(uint32_t *instr){
+    fpt_regs[((Instr_format_R *)instr)->rd] = (uint32_t)int_regs[((Instr_format_R *)instr)->rs1];
 }
-void fcvt_w_d(uint32_t *instr, uint32_t *pc, int *running){
+void fcvt_w_d(uint32_t *instr){
     fpt_regs[((Instr_format_R *)instr)->rd] = int_regs[((Instr_format_R *)instr)->rs1];
 }
-void f_eq(uint32_t *instr, uint32_t *pc, int *running){
+void f_eq(uint32_t *instr){
     int_regs[((Instr_format_R *)instr)->rd] = fpt_regs[((Instr_format_R *)instr)->rs1] == fpt_regs[((Instr_format_R *)instr)->rs2];
 }
-void f_lt(uint32_t *instr, uint32_t *pc, int *running){
+void f_lt(uint32_t *instr){
     int_regs[((Instr_format_R *)instr)->rd] = fpt_regs[((Instr_format_R *)instr)->rs1] < fpt_regs[((Instr_format_R *)instr)->rs2];
 }
-void f_le(uint32_t *instr, uint32_t *pc, int *running){
+void f_le(uint32_t *instr){
     int_regs[((Instr_format_R *)instr)->rd] = fpt_regs[((Instr_format_R *)instr)->rs1] <= fpt_regs[((Instr_format_R *)instr)->rs2];
 }
 
-void scan(uint32_t *instr, uint32_t *pc, int *running){
+void fmv(uint32_t *instr){
+    fpt_regs[((Instr_format_R *)instr)->rd] = fpt_regs[((Instr_format_R *)instr)->rs1];
+}
+
+void fneg(uint32_t *instr){
+    fpt_regs[((Instr_format_R *)instr)->rd] = -fpt_regs[((Instr_format_R *)instr)->rs1];
+}
+
+void Fabs(uint32_t *instr){
+    fpt_regs[((Instr_format_R *)instr)->rd] = fabs(fpt_regs[((Instr_format_R *)instr)->rs1]);
+}
+
+void scan(uint32_t *instr){
     //decode
     uint32_t in = ((Instr_format_U *)instr)->imm;
     char fm[11] = "%";
@@ -354,7 +371,7 @@ void scan(uint32_t *instr, uint32_t *pc, int *running){
     }
 }
 
-void print(uint32_t *instr, uint32_t *pc, int *running){
+void print(uint32_t *instr){
     //decode
     uint32_t in = ((Instr_format_U *)instr)->imm;
     char fm[11] = "%";
@@ -485,22 +502,10 @@ void print(uint32_t *instr, uint32_t *pc, int *running){
     }
 }
 
-
-void call(uint32_t *instr, uint32_t *pc, int *running){
-    run(*pc + get_imm_UJ(((Instr_format_U *)instr)));
-}
-
-void callr(uint32_t *instr, uint32_t *pc, int *running) {
-    run(*pc + (int_regs[((Instr_format_I *)instr)->rs1] + get_imm_I(((Instr_format_I *)instr))));
-}
-
-void ret(uint32_t *instr, uint32_t *pc, int *running){
-    (*running) = 0;
-}
-void reallocation(uint32_t *instr, uint32_t *pc, int *running){
+void reallocation(uint32_t *instr){
     memory = realloc(memory, (uint32_t)int_regs[((Instr_format_U *)instr)->rd]);
 }
 
-void Exit(uint32_t *instr, uint32_t *pc, int *running){
-    on_error(0);//Halt
+void Exit(uint32_t *instr){
+    running = 0;//Halt
 }

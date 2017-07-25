@@ -5,7 +5,7 @@
 //  Created by Tyler Liu on 2016/10/09.
 //  Copyright © 2016 Tyler Liu. All rights reserved.
 //
-// Byte code written in Little Endian.
+// Byte code should be written in Little Endian.
 
 #include <stdio.h>
 #include <stdint.h>
@@ -24,16 +24,14 @@
 #define ArrayOutOfBoundException 3
 
 FILE *f;
-uint32_t len_program;
-uint32_t *program;
 //dictionary
-const int length_op = 69;
-void (*ops[length_op])(uint32_t *, uint32_t *, int *) = {&addi, &slti, &sltui, &andi, &ori, &xori, &slli, &srli, &srai, &muli, &divi, &divui, &remi, & remui,
-                                 &add, &sub, &slt, &sltu, &and, &or, &xor, &sll, &srl, &sra, &mul, &division, &divu, &rem,
-                                 &remu, &lui, &jal, &jalr, &beq, &bne, &blt, &bltu, &bge, &bgeu, &lw, &lh,
-                                 &lhu, &lb, &lbu, &sw, &sh, &sb, &flw, &fld, &fsw, &fsd, &fadd, &fsub, &fmul, &fdiv,
-                                 &fsqrt, &fcvt_d_w, &fcvt_d_wu, &fcvt_w_d, &fcvt_wu_d, &f_eq, &f_lt, &f_le,
-                                 &scan, &print, &call, &callr, &ret, &reallocation, &Exit};
+const int length_op = 70;
+void (*ops[length_op])(uint32_t *) = {addi, slti, sltui, andi, ori, xori, slli, srli, srai, muli, divi, divui, remi, remui,
+                                 add, sub, slt, sltu, and, or, xor, sll, srl, sra, mul, division, divu, rem,
+                                 remu, lui, auipc, jal, jalr, beq, bne, blt, bltu, bge, bgeu, lw, lh,
+                                 lhu, lb, lbu, sw, sh, sb, flw, fld, fsw, fsd, fadd, fsub, fmul, fdiv,
+                                 fsqrt, fcvt_d_w, fcvt_d_wu, fcvt_w_d, fcvt_wu_d, f_eq, f_lt, f_le, fmv, fneg, Fabs,
+                                 scan, print, reallocation, Exit};
 void on_error(int type) {
     switch (type) {
         case Halt:
@@ -51,32 +49,28 @@ void on_error(int type) {
     exit(type);
 }
 
-uint32_t fetch(uint32_t *pc) {
-    if (*pc >= len_program) {
+uint32_t fetch() {
+    if (pc >= len_program) {
         on_error(ArrayOutOfBoundException);
     }
-    (*pc)++;
+    pc++;
     //printf("fetch %d\n", *pc - 1);
-    return program[*pc - 1];
+    return program[pc - 1];
 }
 
-void run(uint32_t pc);
+void run();
 
 /* evaluate the last decoded instruction */
-void eval(int *running, uint32_t *pc) {
-    uint32_t instr;
-    instr = fetch(pc);
+void eval() {
+    uint32_t instr = fetch();
     //printf("NUM: %d\n", instr);
-    ops[(instr) & 0xFF](&instr, pc, running);
+    ops[(instr) & 0xFF](&instr);
 
 }
 
 // run with program counter
-void run(uint32_t pc) {
-    int running = 1;
-    while (running) {
-        eval(&running, &pc);
-    }
+void run() {
+
 }
 
 int main( int argc, const char * argv[] )
@@ -119,7 +113,12 @@ int main( int argc, const char * argv[] )
     fclose(f);
 
     //execute
-    run(0);
+    pc = 0;
+    running = 1;
+    //run
+    while (running) {
+        eval();
+    }
     free(program);
     free(memory);
     return 0;
