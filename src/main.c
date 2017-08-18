@@ -50,26 +50,19 @@ void on_error(int type) {
 }
 
 uint32_t fetch() {
+    //printf("fetch %d %u\n", pc, (program[pc]) & 0xFF);
     if (pc >= len_program) {
         on_error(ArrayOutOfBoundException);
     }
     pc++;
-    //printf("fetch %d\n", *pc - 1);
     return program[pc - 1];
 }
-
-void run();
 
 /* evaluate the last decoded instruction */
 void eval() {
     uint32_t instr = fetch();
     //printf("NUM: %d\n", instr);
     ops[(instr) & 0xFF](&instr);
-
-}
-
-// run with program counter
-void run() {
 
 }
 
@@ -90,32 +83,38 @@ int main( int argc, const char * argv[] )
         printf("Error: %s\n", strerror(errno));
         on_error(IOException);
     }
+
+    len_program ++; // extra space for exit
+
     program = (uint32_t *)malloc(len_program * sizeof(uint32_t));
     if(!program){
         on_error(AllocationException);
     }
 
-    if (fread(&len_mem, 4, 1, f) != 1){
-        printf("Error: %s\n", strerror(errno));
-        on_error(IOException);
-    }
+    len_mem = 1 << 21;//alloc 2 MB mem space
     memory = malloc(len_mem);
     if(!memory){
         printf("Error: %s\n", strerror(errno));
         on_error(AllocationException);
     }
 
-    if (fread(program, 4, len_program, f) != len_program) {
+    if (fread(program, 4, len_program - 1, f) != (len_program - 1)) {
         printf("Error: %s\n", strerror(errno));
         on_error(IOException);
     }
 
     fclose(f);
 
-    //execute
+    //pre-execution config
     pc = 0;
     running = 1;
-    //run
+    program[len_program - 1] = EXIT;
+    int_regs[1] = len_program - 1;
+    int_regs[2] = int_regs[3] = STACK_BEGIN;
+    int_regs[4] = GLOBAL_PTR;
+    //printf("len: %u\n", len_program);
+
+    //execution
     while (running) {
         eval();
     }
