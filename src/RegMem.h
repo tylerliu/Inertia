@@ -16,7 +16,9 @@
 #define STACK_BEGIN 2097148
   // mem size = (1 << 21 - 4), 2MB
 
-#define GLOBAL_PTR 8193
+#define GLOBAL_PTR 8196
+#define GLOBAL_START 4
+  //(GLOBAL_PTR - (1 << 13))
 
 //program counter
 uint32_t pc;

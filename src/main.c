@@ -10,7 +10,6 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
-#include <errno.h>
 #include <string.h>
 
 #include "RegMem.h"
@@ -35,6 +34,12 @@ void (*ops[length_op])(uint32_t *) = {addi, slti, sltui, andi, ori, xori, slli, 
 void on_error(int type) {
     switch (type) {
         case Halt:
+            break;
+        case IOException:
+            fprintf(stderr, "Failed to read file. \n");
+            break;
+        case AllocationException:
+            fprintf(stderr, "Failed to allocate memory. \n");
             break;
         case ArrayOutOfBoundException:
             printf("Instruction array out of bound\n");
@@ -80,7 +85,6 @@ int main( int argc, const char * argv[] )
     //len_program = fgetu();
 
     if (fread(&len_program, 4, 1, f) != 1){
-        printf("Error: %s\n", strerror(errno));
         on_error(IOException);
     }
 
@@ -94,14 +98,33 @@ int main( int argc, const char * argv[] )
     len_mem = 1 << 21;//alloc 2 MB mem space
     memory = malloc(len_mem);
     if(!memory){
-        printf("Error: %s\n", strerror(errno));
         on_error(AllocationException);
     }
 
     if (fread(program, 4, len_program - 1, f) != (len_program - 1)) {
-        printf("Error: %s\n", strerror(errno));
         on_error(IOException);
     }
+
+    //global area --- initialized segment
+    uint32_t initd;
+    if (fread(&initd, 4, 1, f) != 1){
+        on_error(IOException);
+    }
+    if (fread(memory + GLOBAL_START, 1, initd, f) != initd) {
+        on_error(IOException);
+    }
+
+    uint32_t uninitd;
+    if (fread(&uninitd, 4, 1, f) != 1){
+        on_error(IOException);
+    }
+
+    memset(memory + GLOBAL_START + initd, 0, uninitd);
+
+    /* //some global memory check
+    for (void *i = memory + GLOBAL_START; i < memory + GLOBAL_START+ initd; i ++)
+        printf("%02X\n", *(uint8_t *)i);
+        */
 
     fclose(f);
 
