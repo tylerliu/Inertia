@@ -107,10 +107,6 @@ void fmv(uint32_t *instr);
 void fneg(uint32_t *instr);
 void Fabs(uint32_t *instr);
 
-//IO
-void scan(uint32_t *instr);
-void print(uint32_t *instr);
-
-void reallocation(uint32_t *instr);
-void Exit(uint32_t *instr);
+//environment call
+void ecall(uint32_t *instr);
 #endif /* Execution.h */

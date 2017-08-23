@@ -30,6 +30,7 @@ uint32_t running;
  * reg[3] is stack top pointer
  * reg[4] is global area pointer
  * reg[5] is temporary register
+ * reg 6-21 are argument register/return register
  */
 
 int32_t int_regs[NUM_INT_REGS];

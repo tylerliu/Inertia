@@ -79,10 +79,7 @@
 #define FMV     0X3F
 #define FNEG    0X40
 #define FABS    0X41
-#define SCAN    0X42
-#define PRINT   0X43
-#define REALLOC 0X44
-#define EXIT    0X45
+#define ECALL   0X42
 
 
 

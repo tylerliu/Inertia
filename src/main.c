@@ -24,13 +24,13 @@
 
 FILE *f;
 //dictionary
-const int length_op = 70;
+const int length_op = 67;
 void (*ops[length_op])(uint32_t *) = {addi, slti, sltui, andi, ori, xori, slli, srli, srai, muli, divi, divui, remi, remui,
                                  add, sub, slt, sltu, and, or, xor, sll, srl, sra, mul, division, divu, rem,
                                  remu, lui, auipc, jal, jalr, beq, bne, blt, bltu, bge, bgeu, lw, lh,
                                  lhu, lb, lbu, sw, sh, sb, flw, fld, fsw, fsd, fadd, fsub, fmul, fdiv,
                                  fsqrt, fcvt_d_w, fcvt_d_wu, fcvt_w_d, fcvt_wu_d, f_eq, f_lt, f_le, fmv, fneg, Fabs,
-                                 scan, print, reallocation, Exit};
+                                 ecall};
 void on_error(int type) {
     switch (type) {
         case Halt:
@@ -131,7 +131,7 @@ int main( int argc, const char * argv[] )
     //pre-execution config
     pc = 0;
     running = 1;
-    program[len_program - 1] = EXIT;
+    program[len_program - 1] = ECALL;  //exit
     int_regs[1] = len_program - 1;
     int_regs[2] = int_regs[3] = STACK_BEGIN;
     int_regs[4] = GLOBAL_PTR;
