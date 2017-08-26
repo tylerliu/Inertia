@@ -44,6 +44,16 @@ uint32_t *program;
 uint32_t len_mem;
 void *memory;
 
+//heap elements
+uint32_t heap_start;
+uint32_t heap_brk;
+void init_heap();
+uint32_t heap_sbrk(uint32_t size);
+uint32_t alloc_block(uint32_t size);
+void free_block(uint32_t ptr);
+uint32_t realloc_block(uint32_t ptr, uint32_t size);
+void print_heap_stat();
+
 //fcsr not defined
 //pc defined in main program.
 

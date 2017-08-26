@@ -14,6 +14,7 @@
 
 #include "RegMem.h"
 #include "Execution.h"
+#include "ecall.h"
 
 
 //Error type
@@ -125,10 +126,14 @@ int main( int argc, const char * argv[] )
     for (void *i = memory + GLOBAL_START; i < memory + GLOBAL_START+ initd; i ++)
         printf("%02X\n", *(uint8_t *)i);
         */
+    heap_start = GLOBAL_START + initd + uninitd;
+    heap_start = ((heap_start - 1) >> 3 << 3) + 8; //eight byte aligned
+    init_heap();
 
     fclose(f);
 
     //pre-execution config
+    io_init();
     pc = 0;
     running = 1;
     program[len_program - 1] = ECALL;  //exit
@@ -143,5 +148,6 @@ int main( int argc, const char * argv[] )
     }
     free(program);
     free(memory);
+    io_free();
     return 0;
 }
